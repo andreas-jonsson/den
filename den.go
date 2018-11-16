@@ -5,6 +5,9 @@ package main
 
 import (
 	"flag"
+
+	"gitlab.com/phix/den/client"
+	"gitlab.com/phix/den/server"
 )
 
 var startServer bool
@@ -17,7 +20,7 @@ func main() {
 	flag.Parse()
 	if startServer {
 		server.Start()
-	}else {
+	} else {
 		client.Start()
 	}
 }
