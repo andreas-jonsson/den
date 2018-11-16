@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/nsf/termbox-go"
-	"gitlab.com/phix/terminology/beep"
-	"gitlab.com/phix/terminology/page437"
+	"gitlab.com/phix/den/beep"
+	"gitlab.com/phix/den/page437"
 )
 
 func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
