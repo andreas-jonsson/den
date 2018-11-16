@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"github.com/nsf/termbox-go"
+
 	"gitlab.com/phix/den/beep"
+	"gitlab.com/phix/den/client/logger"
 	"gitlab.com/phix/den/page437"
 )
 
@@ -39,28 +41,26 @@ func Start() {
 	if err := termbox.Init(); err != nil {
 		panic(err)
 	}
+	defer logger.Dump()
+	defer termbox.Close()
+
 	termbox.SetInputMode(termbox.InputEsc)
 
 	go func() {
 		time.Sleep(5 * time.Second)
+
+		logger.Fatalln("aaasas")
 
 		beep.Beep(2000, 1*time.Second)
 
 		time.Sleep(5 * time.Second)
 
 		termbox.Interrupt()
-
-		// This should never run - the Interrupt(), above, should cause the event
-		// loop below to exit, which then exits the process.  If something goes
-		// wrong, this panic will trigger and show what happened.
-		time.Sleep(1 * time.Second)
-		panic("this should never run")
 	}()
 
 	var count int
 	draw(count)
 
-mainloop:
 	for {
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:
@@ -71,13 +71,12 @@ mainloop:
 			}
 
 		case termbox.EventError:
-			panic(ev.Err)
+			logger.Fatalln(ev.Err)
 
 		case termbox.EventInterrupt:
-			break mainloop
+			return
 		}
 
 		draw(count)
 	}
-	termbox.Close()
 }
