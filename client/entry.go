@@ -4,79 +4,55 @@
 package client
 
 import (
-	"fmt"
+	"flag"
 	"time"
 
 	"github.com/nsf/termbox-go"
 
-	"gitlab.com/phix/den/beep"
-	"gitlab.com/phix/den/client/logger"
-	"gitlab.com/phix/den/page437"
+	"gitlab.com/phix/den/client/state/exit"
+	"gitlab.com/phix/den/client/state/intro"
+	"gitlab.com/phix/den/logger"
+	"gitlab.com/phix/den/state"
 )
 
-func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
-	for _, c := range msg {
-		termbox.SetCell(x, y, c, fg, bg)
-		x++
-	}
+var logPort string
+
+func init() {
+	flag.StringVar(&logPort, "tcplog", "", "Port for TCP logger")
 }
-
-func draw(i int) {
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	defer termbox.Flush()
-
-	w, h := termbox.Size()
-	s := fmt.Sprintf("count = %d", i)
-
-	for i := 0; i < 16; i++ {
-		for j := 0; j < 16; j++ {
-			termbox.SetCell(j, i, page437.ToUnicode(byte(i*16+j)), termbox.ColorRed, termbox.ColorDefault)
-		}
-	}
-
-	tbPrint((w/2)-(len(s)/2), h/2, termbox.ColorRed, termbox.ColorDefault, s)
-}
-
 func Start() {
 	if err := termbox.Init(); err != nil {
 		panic(err)
 	}
-	defer logger.Dump()
 	defer termbox.Close()
+
+	logger.Initialize(logPort)
+	defer logger.Shutdown()
 
 	termbox.SetInputMode(termbox.InputEsc)
 
+	m := state.NewMachine()
+	m.AddState(exit.New())
+
+	m.AddState(intro.New(m))
+	m.SetState(intro.Name)
+
+	ticker := time.NewTicker(time.Second / 30)
 	go func() {
-		time.Sleep(5 * time.Second)
-
-		logger.Fatalln("aaasas")
-
-		beep.Beep(2000, 1*time.Second)
-
-		time.Sleep(5 * time.Second)
-
-		termbox.Interrupt()
+		for range ticker.C {
+			termbox.Interrupt()
+		}
 	}()
 
-	var count int
-	draw(count)
-
 	for {
-		switch ev := termbox.PollEvent(); ev.Type {
-		case termbox.EventKey:
-			if ev.Ch == '+' {
-				count++
-			} else if ev.Ch == '-' {
-				count--
-			}
-
-		case termbox.EventError:
-			logger.Fatalln(ev.Err)
-
-		case termbox.EventInterrupt:
+		termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+		if err := m.Update(); err != nil {
+			logger.Fatalln(err)
+		}
+		if m.CurrentState().Name() == exit.Name {
+			ticker.Stop()
 			return
 		}
-
-		draw(count)
+		termbox.Flush()
 	}
 }
