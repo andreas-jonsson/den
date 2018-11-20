@@ -11,6 +11,7 @@ import (
 
 	"gitlab.com/phix/den/client/state/exit"
 	"gitlab.com/phix/den/client/state/intro"
+	"gitlab.com/phix/den/client/state/play"
 	"gitlab.com/phix/den/logger"
 	"gitlab.com/phix/den/state"
 )
@@ -20,6 +21,7 @@ var logPort string
 func init() {
 	flag.StringVar(&logPort, "tcplog", "", "Port for TCP logger")
 }
+
 func Start() {
 	if err := termbox.Init(); err != nil {
 		panic(err)
@@ -36,6 +38,8 @@ func Start() {
 
 	m.AddState(intro.New(m))
 	m.SetState(intro.Name)
+
+	m.AddState(play.New(m))
 
 	ticker := time.NewTicker(time.Second / 30)
 	go func() {

@@ -46,7 +46,7 @@ func (m *Machine) Update() error {
 }
 
 func (m *Machine) Switch(to string, data ...interface{}) {
-	//logger.Println(m.currentState.Name(), "->", to)
+	logger.Println(m.currentState.Name(), "->", to)
 
 	old := m.currentState.Name()
 	m.currentState.Leave(to)

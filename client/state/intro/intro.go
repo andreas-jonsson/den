@@ -4,8 +4,10 @@
 package intro
 
 import (
+	"time"
+
 	"github.com/nsf/termbox-go"
-	"gitlab.com/phix/den/client/state/exit"
+	"gitlab.com/phix/den/client/state/play"
 	"gitlab.com/phix/den/state"
 )
 
@@ -13,17 +15,20 @@ const Name = "intro"
 
 type Intro struct {
 	m state.Switcher
+	t *time.Timer
 }
 
 func New(m state.Switcher) *Intro {
-	return &Intro{m}
+	return &Intro{m, time.NewTimer(time.Second)}
 }
 
 func (s *Intro) Name() string {
 	return Name
 }
 
-func (s *Intro) Enter(m state.Switcher, from string, data ...interface{}) {}
+func (s *Intro) Enter(m state.Switcher, from string, data ...interface{}) {
+	s.t.Reset(time.Second)
+}
 
 func (s *Intro) Leave(to string) {}
 
@@ -32,7 +37,7 @@ events:
 	for {
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:
-			s.m.Switch(exit.Name)
+			s.m.Switch(play.Name)
 		case termbox.EventError:
 			return ev.Err
 		case termbox.EventInterrupt:
@@ -51,10 +56,14 @@ events:
 	for i := 0; i < len(logo) && i+y < h; i++ {
 		for j, r := range logo[i] {
 			j += w/2 - logoCenter
-			if j < w {
-				termbox.SetCell(j, i+y, r, termbox.ColorDefault, termbox.ColorDefault)
-			}
+			termbox.SetCell(j, i+y, r, termbox.ColorDefault, termbox.ColorDefault)
 		}
+	}
+
+	select {
+	case <-s.t.C:
+		s.m.Switch(play.Name)
+	default:
 	}
 	return nil
 }
