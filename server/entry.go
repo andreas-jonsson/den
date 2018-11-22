@@ -19,7 +19,11 @@ import (
 	"gitlab.com/phix/den/version"
 )
 
-var InterruptChan <-chan os.Signal
+var (
+	SocketOpenChan   = make(chan struct{}, 1)
+	ServerExitedChan = make(chan struct{}, 1)
+	InterruptChan    = make(chan os.Signal, 1)
+)
 
 var listenPort uint
 
@@ -30,11 +34,16 @@ func init() {
 }
 
 func Start() {
+	defer func() {
+		ServerExitedChan <- struct{}{}
+	}()
+
 	lsock, err := net.Listen("tcp", fmt.Sprintf(":%d", listenPort))
 	if err != nil {
 		return
 	}
 	defer lsock.Close()
+	SocketOpenChan <- struct{}{}
 
 	var wg sync.WaitGroup
 	closeChan := make(chan struct{})

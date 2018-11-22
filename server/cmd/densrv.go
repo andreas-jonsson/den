@@ -9,14 +9,24 @@ import (
 	"os"
 	"os/signal"
 
+	"gitlab.com/phix/den/client"
 	"gitlab.com/phix/den/server"
 	"gitlab.com/phix/den/version"
 )
 
-var printVersion bool
+const includeClient = true
+
+var (
+	printVersion,
+	hostLocal bool
+)
 
 func init() {
 	flag.BoolVar(&printVersion, "version", false, "Show version")
+
+	if includeClient {
+		flag.BoolVar(&hostLocal, "local", false, "Host local game")
+	}
 }
 
 func Start() {
@@ -27,8 +37,17 @@ func Start() {
 	}
 
 	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
 	server.InterruptChan = signalChan
 
+	if hostLocal {
+		go func() {
+			<-client.GameExitedChan
+			signalChan <- os.Interrupt
+		}()
+		go client.Start()
+		<-client.LoggerInitializedChan
+	} else {
+		signal.Notify(signalChan, os.Interrupt)
+	}
 	server.Start()
 }

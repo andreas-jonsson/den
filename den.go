@@ -15,6 +15,9 @@ import (
 	"gitlab.com/phix/den/version"
 )
 
+// This sould only be enabled during development.
+const includeServer = false
+
 var (
 	printVersion,
 	printAbout,
@@ -24,7 +27,10 @@ var (
 func init() {
 	flag.BoolVar(&printVersion, "version", false, "Show version")
 	flag.BoolVar(&printAbout, "about", false, "Show information about the game")
-	flag.BoolVar(&hostLocal, "local", false, "Host local game")
+
+	if includeServer {
+		flag.BoolVar(&hostLocal, "local", false, "Host local game")
+	}
 }
 
 func main() {
@@ -43,21 +49,20 @@ func main() {
 		return
 	}
 
-	interruptChan := make(chan os.Signal)
 	if hostLocal {
 		flag.Set("host", "localhost:5000")
 		flag.Parse()
 
-		server.InterruptChan = interruptChan
 		go func() {
 			<-client.LoggerInitializedChan
 			server.Start()
 		}()
+
+		defer func() {
+			server.InterruptChan <- os.Interrupt
+			<-server.ServerExitedChan
+		}()
 	}
 
 	client.Start()
-
-	if hostLocal {
-		interruptChan <- os.Interrupt
-	}
 }

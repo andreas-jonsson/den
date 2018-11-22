@@ -16,7 +16,10 @@ import (
 	"gitlab.com/phix/den/state"
 )
 
-var LoggerInitializedChan = make(chan struct{}, 1)
+var (
+	LoggerInitializedChan = make(chan struct{}, 1)
+	GameExitedChan        = make(chan struct{}, 1)
+)
 
 var (
 	logPort,
@@ -29,6 +32,10 @@ func init() {
 }
 
 func Start() {
+	defer func() {
+		GameExitedChan <- struct{}{}
+	}()
+
 	if err := termbox.Init(); err != nil {
 		panic(err)
 	}
