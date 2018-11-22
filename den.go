@@ -29,8 +29,8 @@ func init() {
 func main() {
 	flag.Parse()
 	if printAbout {
-		fmt.Println("-=D=E=N=-\n")
-		fmt.Println(version.Copyright)
+		fmt.Println("-=D=E=N=-")
+		fmt.Println("\n", version.Copyright)
 		fmt.Println("Contact: mail@andreasjonsson.se")
 		fmt.Println("Version:", version.Full)
 		return
