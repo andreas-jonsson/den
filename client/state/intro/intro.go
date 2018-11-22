@@ -11,6 +11,8 @@ import (
 	"gitlab.com/phix/den/state"
 )
 
+const displayTime = 3 * time.Second
+
 const Name = "intro"
 
 type Intro struct {
@@ -19,7 +21,7 @@ type Intro struct {
 }
 
 func New(m state.Switcher) *Intro {
-	return &Intro{m, time.NewTimer(time.Second)}
+	return &Intro{m, time.NewTimer(displayTime)}
 }
 
 func (s *Intro) Name() string {
@@ -27,7 +29,7 @@ func (s *Intro) Name() string {
 }
 
 func (s *Intro) Enter(m state.Switcher, from string, data ...interface{}) {
-	s.t.Reset(time.Second)
+	s.t.Reset(displayTime)
 }
 
 func (s *Intro) Leave(to string) {}

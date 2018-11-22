@@ -1,6 +1,8 @@
 // DEN
 // Copyright (C) 2018 Andreas T Jonsson
 
+//go:generate go run tools/version/version.go -file version/version.go
+
 package main
 
 import (

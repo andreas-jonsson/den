@@ -3,6 +3,10 @@
 
 package intro
 
+import (
+	"gitlab.com/phix/den/version"
+)
+
 var logo = []string{
 	"          (            )",
 	"          )\\ )      ( /(",
@@ -13,6 +17,6 @@ var logo = []string{
 	"          | |) | _|| .` |",
 	"          |___/|___|_|\\_|",
 	"",
-	"Copyright (C) 2018 Andreas T Jonsson",
+	version.Copyright,
 	"       mail@andreasjonsson.se",
 }
