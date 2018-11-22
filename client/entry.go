@@ -16,10 +16,16 @@ import (
 	"gitlab.com/phix/den/state"
 )
 
-var logPort string
+var LoggerInitializedChan = make(chan struct{}, 1)
+
+var (
+	logPort,
+	hostAddr string
+)
 
 func init() {
 	flag.StringVar(&logPort, "tcplog", "", "Port for TCP logger")
+	flag.StringVar(&hostAddr, "host", "localhost:5000", "Connect to server")
 }
 
 func Start() {
@@ -29,6 +35,7 @@ func Start() {
 	defer termbox.Close()
 
 	logger.Initialize(logPort)
+	LoggerInitializedChan <- struct{}{}
 	defer logger.Shutdown()
 
 	termbox.SetInputMode(termbox.InputEsc)

@@ -9,6 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"os"
 	"sync"
 	"time"
 
@@ -17,6 +18,8 @@ import (
 	"gitlab.com/phix/den/server/world"
 	"gitlab.com/phix/den/version"
 )
+
+var InterruptChan <-chan os.Signal
 
 var listenPort uint
 
@@ -31,6 +34,7 @@ func Start() {
 	if err != nil {
 		return
 	}
+	defer lsock.Close()
 
 	var wg sync.WaitGroup
 	closeChan := make(chan struct{})
@@ -40,8 +44,20 @@ func Start() {
 
 	var playerID uint64
 	for {
+		lsock.(*net.TCPListener).SetDeadline(time.Now().Add(time.Second))
+
 		conn, err := lsock.Accept()
 		if err != nil {
+			if err.(net.Error).Timeout() {
+				select {
+				case <-InterruptChan:
+					return
+				default:
+					continue
+				}
+			}
+
+			logger.Println(err)
 			return
 		}
 
