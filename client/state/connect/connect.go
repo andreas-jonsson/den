@@ -4,12 +4,17 @@
 package connect
 
 import (
+	"encoding/gob"
 	"net"
 
+	"gitlab.com/phix/den/message"
+
 	"github.com/nsf/termbox-go"
+	"gitlab.com/phix/den/client/state/discon"
 	"gitlab.com/phix/den/client/state/play"
 	"gitlab.com/phix/den/logger"
 	"gitlab.com/phix/den/state"
+	"gitlab.com/phix/den/version"
 )
 
 const Name = "connect"
@@ -37,6 +42,18 @@ func (s *Connect) Enter(m state.Switcher, from string, data ...interface{}) {
 		conn, err := net.Dial("tcp", s.host)
 		if err != nil {
 			logger.Println("Could not connect to:", s.host)
+			close(s.connChan)
+			return
+		}
+
+		enc := gob.NewEncoder(conn)
+		msg := message.ClientConnect{
+			Name:    "noname",
+			Version: [3]byte{version.Major, version.Minor, version.Patch},
+		}
+
+		if enc.Encode(&msg) != nil {
+			logger.Println("Could not send connection request")
 			close(s.connChan)
 			return
 		}
@@ -69,7 +86,7 @@ events:
 	select {
 	case conn, ok := <-s.connChan:
 		if !ok {
-			s.m.Switch("intro")
+			s.m.Switch(discon.Name, discon.CouldNotConnectMsg)
 			return nil
 		}
 		s.connChan = nil
