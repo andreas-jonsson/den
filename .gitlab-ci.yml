@@ -30,6 +30,7 @@ format:
 compile:
     stage: build
     script:
+      - go generate
       - go build -o $CI_PROJECT_DIR/den den.go
     artifacts:
       paths:
