@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"github.com/nsf/termbox-go"
-	"gitlab.com/phix/den/client/state/play"
+	"gitlab.com/phix/den/client/state/connect"
+	"gitlab.com/phix/den/client/state/exit"
 	"gitlab.com/phix/den/state"
 )
 
@@ -39,7 +40,12 @@ events:
 	for {
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:
-			s.m.Switch(play.Name)
+			if ev.Key == termbox.KeyEsc {
+				s.m.Switch(exit.Name)
+				return nil
+			}
+			s.m.Switch(connect.Name)
+			return nil
 		case termbox.EventError:
 			return ev.Err
 		case termbox.EventInterrupt:
@@ -64,7 +70,7 @@ events:
 
 	select {
 	case <-s.t.C:
-		s.m.Switch(play.Name)
+		s.m.Switch(connect.Name)
 	default:
 	}
 	return nil

@@ -66,7 +66,7 @@ func Start() {
 				}
 			}
 
-			logger.Println(err)
+			logger.Println("Error in TCP listen:", err)
 			return
 		}
 
@@ -80,6 +80,8 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 	defer wg.Done()
 	defer conn.Close()
 
+	logger.Println("Player connected:", id)
+
 	dec := gob.NewDecoder(conn)
 	enc := gob.NewEncoder(conn)
 
@@ -87,11 +89,13 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 
 	var msg message.ClientConnect
 	if err := dec.Decode(&msg); err != nil {
-		logger.Println(err)
+		logger.Println("Handshake failed", err)
+		return
 	}
 
 	conn.SetDeadline(time.Now().Add(time.Second))
 	if err := sendSetupData(enc, id, msg); err != nil {
+		logger.Println("Player initialization failed:", err)
 		return
 	}
 

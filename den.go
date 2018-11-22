@@ -16,7 +16,7 @@ import (
 )
 
 // This sould only be enabled during development.
-const includeServer = false
+const includeServer = true
 
 var (
 	printVersion,

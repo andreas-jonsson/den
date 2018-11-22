@@ -36,6 +36,7 @@ events:
 			switch ev.Key {
 			case termbox.KeyEsc:
 				s.m.Switch(exit.Name)
+				return nil
 			case termbox.KeyArrowUp:
 				s.posY--
 			case termbox.KeyArrowDown:
