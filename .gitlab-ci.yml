@@ -39,8 +39,8 @@ compile:
       - ./tools/package/itch/build.sh
     artifacts:
       paths:
-        - den.zip
-        - densrv.zip
+        - den-*.zip
+        - densrv-*.zip
 
 upload:
     stage: deploy
