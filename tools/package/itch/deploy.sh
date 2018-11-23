@@ -5,5 +5,6 @@ unzip butler.zip
 chmod +x butler
 ./butler -V
 
+./butler login
 ./butler push den.zip phix/den:edge --userversion ${BASE_VERSION}-${CI_PIPELINE_ID}
 ./butler push densrv.zip phix/den:edge --userversion ${BASE_VERSION}-${CI_PIPELINE_ID}
