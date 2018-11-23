@@ -1,0 +1,5 @@
+[[actions]]
+name = "play"
+path = "den"
+platform = "linux"
+console = true

@@ -5,8 +5,13 @@ unzip butler.zip
 chmod +x butler
 ./butler -V
 
+./butler login
 export USERVERSION=${BASE_VERSION}-${CI_PIPELINE_ID}
 
-./butler login
-./butler push den.zip phix/den:windows-osx-linux-edge --userversion $USERVERSION
-./butler push densrv.zip phix/den:windows-osx-linux-server-edge --userversion $USERVERSION
+./butler push den-windows.zip phix/den:windows-edge --userversion $USERVERSION
+./butler push den-osx.zip phix/den:osx-edge --userversion $USERVERSION
+./butler push den-linux.zip phix/den:linux-edge --userversion $USERVERSION
+
+./butler push densrv-windows.zip phix/den:server-windows-edge --userversion $USERVERSION
+./butler push densrv-osx.zip phix/den:server-osx-edge --userversion $USERVERSION
+./butler push densrv-linux.zip phix/den:server-linux-edge --userversion $USERVERSION

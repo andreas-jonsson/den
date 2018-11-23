@@ -1,0 +1,5 @@
+[[actions]]
+name = "Server"
+path = "densrv"
+platform = "osx"
+console = true
