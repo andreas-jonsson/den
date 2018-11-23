@@ -31,7 +31,8 @@ compile:
     stage: build
     script:
       - go generate
-      - go build -o $CI_PROJECT_DIR/den den.go
+      - ./tools/package/itch/build.sh
     artifacts:
       paths:
-        - den
+        - den.zip
+        - densrv.zip
