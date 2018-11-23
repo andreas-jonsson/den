@@ -4,8 +4,8 @@ echo "Creating structure..."
 export ROOT=.
 rm -rf $ROOT/den-* $ROOT/densrv-*
 
-cp $ROOT/tools/package/itch/den-* $ROOT
-cp $ROOT/tools/package/itch/densrv-* $ROOT
+cp -r $ROOT/tools/package/itch/den-* $ROOT
+cp -r $ROOT/tools/package/itch/densrv-* $ROOT
 
 export GOARCH=amd64
 
