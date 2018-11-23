@@ -1,0 +1,17 @@
+[[actions]]
+name = "Server"
+path = "windows/densrv.exe"
+platform = "windows"
+console = true
+
+[[actions]]
+name = "Server"
+path = "osx/densrv"
+platform = "osx"
+console = true
+
+[[actions]]
+name = "Server"
+path = "linux/densrv"
+platform = "linux"
+console = true
