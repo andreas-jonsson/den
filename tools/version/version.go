@@ -18,7 +18,7 @@ import (
 func main() {
 	file := flag.String("file", "-", "Save the generated output to file.")
 	pkg := flag.String("package", "version", "Package name of the generated output.")
-	ver := flag.String("variable", "DEN_VERSION", "Environment variable containing the version number.")
+	ver := flag.String("variable", "FULL_VERSION", "Environment variable containing the version number.")
 	flag.Parse()
 
 	cmd := exec.Command("git", "rev-parse", "HEAD")

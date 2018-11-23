@@ -29,7 +29,7 @@ func init() {
 	}
 }
 
-func Start() {
+func main() {
 	flag.Parse()
 	if printVersion {
 		fmt.Println(version.String)
