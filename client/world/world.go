@@ -37,5 +37,5 @@ func NewWorld(level []byte) *World {
 }
 
 func (w *World) Level() level.Level {
-	return w.orgLevel
+	return nil
 }
