@@ -15,11 +15,13 @@ variables:
 before_script:
   - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
   - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
-  - cd $GOPATH/src/$REPO_NAME
+  - cd $GOPATH/src/$
+  - apt-get install -y zip
 
 stages:
     - test
     - build
+    - deploy
 
 format:
     stage: test
@@ -34,8 +36,12 @@ compile:
       - export FULL_VERSION=${BASE_VERSION}.${CI_PIPELINE_ID}
       - go generate
       - ./tools/package/itch/build.sh
-      - ./tools/package/itch/deploy.sh
     artifacts:
       paths:
         - den.zip
         - densrv.zip
+
+upload:
+    stage: deploy
+    script:
+      - ./tools/package/itch/deploy.sh
