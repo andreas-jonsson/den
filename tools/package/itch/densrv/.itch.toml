@@ -1,17 +1,38 @@
 [[actions]]
-name = "Server"
+name = "Play Local"
+path = "windows/densrv.exe"
+platform = "windows"
+console = true
+args = ["-local"]
+
+[[actions]]
+name = "Start Server"
 path = "windows/densrv.exe"
 platform = "windows"
 console = true
 
 [[actions]]
-name = "Server"
+name = "Play Local"
+path = "osx/densrv"
+platform = "osx"
+console = true
+args = ["-local"]
+
+[[actions]]
+name = "Start Server"
 path = "osx/densrv"
 platform = "osx"
 console = true
 
 [[actions]]
-name = "play"
+name = "Play Local"
+path = "linux/densrv"
+platform = "linux"
+console = true
+args = ["-local"]
+
+[[actions]]
+name = "Start Server"
 path = "linux/densrv"
 platform = "linux"
 console = true
