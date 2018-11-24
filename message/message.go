@@ -34,10 +34,19 @@ type ClientInput struct {
 
 type ClientClose struct{}
 
+const (
+	EmptyTile byte = iota
+	WallTile
+	FloorTile
+)
+
 type ServerConnected struct {
-	Id     uint64
-	Level  []byte
 	Result string
+}
+
+type ServerSetup struct {
+	Id    uint64
+	Level []byte
 }
 
 type ServerClose struct {

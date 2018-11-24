@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"gitlab.com/phix/den/level"
 	"gitlab.com/phix/den/logger"
 	"gitlab.com/phix/den/message"
 	"gitlab.com/phix/den/server/world"
@@ -50,6 +51,8 @@ func Start() {
 
 	defer wg.Wait()
 	defer close(closeChan)
+
+	wld = world.NewWorld(level.Level1)
 
 	var playerID uint64
 	for {
@@ -127,7 +130,12 @@ func sendSetupData(enc *gob.Encoder, id uint64, msg message.ClientConnect) error
 		return err
 	}
 
-	resp.Id = id
-	//resp.Level
-	return enc.Encode(&resp)
+	if err := enc.Encode(&resp); err != nil {
+		return err
+	}
+
+	var setup message.ServerSetup
+	setup.Id = id
+	//setup.Level
+	return enc.Encode(&setup)
 }

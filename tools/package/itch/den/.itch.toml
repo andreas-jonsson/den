@@ -8,10 +8,10 @@ console = true
 name = "play"
 path = "osx/den"
 platform = "osx"
-console = true
+# console = true
 
 [[actions]]
 name = "play"
 path = "linux/den"
 platform = "linux"
-console = true
+# console = true

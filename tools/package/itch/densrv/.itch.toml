@@ -15,24 +15,24 @@ console = true
 name = "Play Local"
 path = "osx/densrv"
 platform = "osx"
-console = true
+# console = true
 args = ["-local"]
 
 [[actions]]
 name = "Start Server"
 path = "osx/densrv"
-platform = "osx"
+# platform = "osx"
 console = true
 
 [[actions]]
 name = "Play Local"
 path = "linux/densrv"
 platform = "linux"
-console = true
+# console = true
 args = ["-local"]
 
 [[actions]]
 name = "Start Server"
 path = "linux/densrv"
 platform = "linux"
-console = true
+# console = true
