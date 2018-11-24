@@ -1,5 +1,0 @@
-[[actions]]
-name = "play"
-path = "den.exe"
-platform = "windows"
-console = true

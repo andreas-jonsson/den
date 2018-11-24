@@ -1,5 +1,0 @@
-[[actions]]
-name = "Server"
-path = "densrv.exe"
-platform = "windows"
-console = true

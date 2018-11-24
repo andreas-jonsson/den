@@ -1,5 +1,0 @@
-[[actions]]
-name = "play"
-path = "den"
-platform = "osx"
-console = true
