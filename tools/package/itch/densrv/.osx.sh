@@ -1,3 +1,3 @@
 #!/bin/bash
 
-open -a Terminal -e ./osx/densrv "$@"
+open -a Terminal -c "./osx/densrv $@"

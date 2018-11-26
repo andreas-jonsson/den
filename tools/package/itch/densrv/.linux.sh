@@ -1,3 +1,3 @@
 #!/bin/bash
 
-x-terminal-emulator -e ./linux/densrv "$@"
+x-terminal-emulator -e "./linux/densrv $@"
