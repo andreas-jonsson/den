@@ -6,7 +6,7 @@ console = true
 
 [[actions]]
 name = "play"
-path = "osx/den"
+path = ".terminal.sh"
 platform = "osx"
 # console = true
 

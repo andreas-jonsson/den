@@ -13,16 +13,16 @@ console = true
 
 [[actions]]
 name = "Play Local"
-path = "osx/densrv"
+path = ".terminal.sh"
 platform = "osx"
 # console = true
 args = ["-local"]
 
 [[actions]]
 name = "Start Server"
-path = "osx/densrv"
-# platform = "osx"
-console = true
+path = ".terminal.sh"
+platform = "osx"
+#console = true
 
 [[actions]]
 name = "Play Local"
