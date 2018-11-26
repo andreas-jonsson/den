@@ -17,8 +17,8 @@ before_script:
   - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
   - cd $GOPATH/src/$REPO_NAME
   - apt-get update -qy
-  - apt-get install -y unzip snapd
-  - sudo apt-get install -y snapd
+  - apt-get install -y unzip
+  - su root && apt-get install -y snapd
   - snap --version
   - systemctl start snapd
   - snap install snapcraft --edge --classic
