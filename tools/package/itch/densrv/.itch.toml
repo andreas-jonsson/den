@@ -13,22 +13,22 @@ console = true
 
 [[actions]]
 name = "Play Local"
-path = ".osx.sh"
+path = ".launch.sh"
 platform = "osx"
 args = ["-local"]
 
 [[actions]]
 name = "Start Server"
-path = ".osx.sh"
+path = ".launch.sh"
 platform = "osx"
 
 [[actions]]
 name = "Play Local"
-path = ".linux.sh"
+path = ".launch.sh"
 platform = "linux"
 args = ["-local"]
 
 [[actions]]
 name = "Start Server"
-path = ".linux.sh"
+path = ".launch.sh"
 platform = "linux"

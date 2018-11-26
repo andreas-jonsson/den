@@ -6,10 +6,10 @@ console = true
 
 [[actions]]
 name = "play"
-path = ".osx.sh"
+path = ".launch.sh"
 platform = "osx"
 
 [[actions]]
 name = "play"
-path = ".linux.sh"
+path = ".launch.sh"
 platform = "linux"
