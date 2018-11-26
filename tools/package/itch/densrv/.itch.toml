@@ -13,26 +13,22 @@ console = true
 
 [[actions]]
 name = "Play Local"
-path = ".terminal.sh"
+path = ".osx.sh"
 platform = "osx"
-# console = true
 args = ["-local"]
 
 [[actions]]
 name = "Start Server"
-path = ".terminal.sh"
+path = ".osx.sh"
 platform = "osx"
-#console = true
 
 [[actions]]
 name = "Play Local"
-path = ".x-terminal.sh"
+path = ".linux.sh"
 platform = "linux"
-# console = true
 args = ["-local"]
 
 [[actions]]
 name = "Start Server"
-path = ".x-terminal.sh"
+path = ".linux.sh"
 platform = "linux"
-# console = true

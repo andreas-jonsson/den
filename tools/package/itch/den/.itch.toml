@@ -6,12 +6,10 @@ console = true
 
 [[actions]]
 name = "play"
-path = ".terminal.sh"
+path = ".osx.sh"
 platform = "osx"
-# console = true
 
 [[actions]]
 name = "play"
-path = ".x-terminal.sh"
+path = ".linux.sh"
 platform = "linux"
-# console = true
