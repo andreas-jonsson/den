@@ -18,7 +18,8 @@ before_script:
   - cd $GOPATH/src/$REPO_NAME
   - apt-get update -qy
   - apt-get install -y unzip snapd
-  - service snapd start
+  - snap --version
+  - systemctl start snapd
   - snap install snapcraft --edge --classic
 
 stages:
