@@ -17,7 +17,8 @@ before_script:
   - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
   - cd $GOPATH/src/$REPO_NAME
   - apt-get update -qy
-  - apt-get install -y zip
+  - apt-get install -y unzip snapd
+  - snap install snapcraft --edge --classic
 
 stages:
     - test
@@ -46,3 +47,6 @@ upload:
     stage: deploy
     script:
       - ./tools/package/itch/deploy.sh
+      - ./tools/package/snap/deploy.sh
+    only:
+      - master
