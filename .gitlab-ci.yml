@@ -1,54 +1,45 @@
-# This file is a template, and might need editing before it works on your project.
 image: golang:latest
 
 variables:
-  # Please edit to your GitLab project
   REPO_NAME: gitlab.com/phix/den
   BASE_VERSION: "0.0.1"
 
-# The problem is that to be able to use go get, one needs to put
-# the repository in the $GOPATH. So for example if your gitlab domain
-# is gitlab.com, and that your repository is namespace/project, and
-# the default GOPATH being /go, then you'd need to have your
-# repository in /go/src/gitlab.com/namespace/project
-# Thus, making a symbolic link corrects this.
 before_script:
   - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
   - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
   - cd $GOPATH/src/$REPO_NAME
   - apt-get update -qy
-  - apt-get install -y unzip snapd
+  - apt-get install -y unzip rpl snapd
   # - snap --version
   # - snap install snapcraft --edge --classic
 
 stages:
-    - test
-    - build
-    - deploy
+  - test
+  - build
+  - deploy
 
 format:
-    stage: test
-    script:
-      - go fmt $(go list ./... | grep -v /vendor/)
-      - go vet $(go list ./... | grep -v /vendor/)
-      - go test -race $(go list ./... | grep -v /vendor/)
+  stage: test
+  script:
+    - go fmt $(go list ./... | grep -v /vendor/)
+    - go vet $(go list ./... | grep -v /vendor/)
+    - go test -race $(go list ./... | grep -v /vendor/)
 
 compile:
-    stage: build
-    script:
-      - export FULL_VERSION=${BASE_VERSION}.${CI_PIPELINE_ID}
-      - go generate
-      - ./tools/package/itch/build.sh
-      # ./tools/package/snap/build.sh
-    artifacts:
-      paths:
-        - den
-        - densrv
+  stage: build
+  script:
+    - FULL_VERSION=${BASE_VERSION}.${CI_PIPELINE_ID} && go generate
+    - ./tools/package/itch/build.sh
+    # ./tools/package/snap/build.sh
+  artifacts:
+    paths:
+      - den
+      - densrv
 
 upload:
-    stage: deploy
-    script:
-      - ./tools/package/itch/deploy.sh
-      # - snapcraft push --release=edge den_git_amd64.snap
-    only:
-      - master
+  stage: deploy
+  script:
+    - ./tools/package/itch/deploy.sh
+    # - snapcraft push --release=edge den_git_amd64.snap
+  only:
+    - master
