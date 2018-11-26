@@ -16,9 +16,9 @@ before_script:
   - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
   - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
   - cd $GOPATH/src/$REPO_NAME
+  - snap --version
   - apt-get update -qy
-  - apt-get install -y unzip
-  - su root && apt-get install -y snapd
+  - apt-get install -y unzip snapd
   - snap --version
   - systemctl start snapd
   - snap install snapcraft --edge --classic
