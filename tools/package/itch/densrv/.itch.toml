@@ -26,13 +26,13 @@ platform = "osx"
 
 [[actions]]
 name = "Play Local"
-path = ".xterm.sh"
+path = ".x-terminal.sh"
 platform = "linux"
 # console = true
 args = ["-local"]
 
 [[actions]]
 name = "Start Server"
-path = ".xterm.sh"
+path = ".x-terminal.sh"
 platform = "linux"
 # console = true

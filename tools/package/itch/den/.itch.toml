@@ -12,6 +12,6 @@ platform = "osx"
 
 [[actions]]
 name = "play"
-path = ".xterm.sh"
+path = ".x-terminal.sh"
 platform = "linux"
 # console = true

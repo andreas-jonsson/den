@@ -1,3 +1,3 @@
 #!/bin/bash
 
-open -a Terminal "./osx/den $@"
+open -a Terminal -e ./osx/den "$@"
