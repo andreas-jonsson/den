@@ -26,13 +26,13 @@ console = true
 
 [[actions]]
 name = "Play Local"
-path = "linux/densrv"
+path = ".xterm.sh"
 platform = "linux"
 # console = true
 args = ["-local"]
 
 [[actions]]
 name = "Start Server"
-path = "linux/densrv"
+path = ".xterm.sh"
 platform = "linux"
 # console = true
