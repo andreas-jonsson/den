@@ -1,7 +1,8 @@
 name: den
 version: git
 summary: A multiplayer game for your terminal
-description: Multiplayer roguelike game that plays in a terminal emulator.
+description: |
+  Multiplayer roguelike game that plays in a terminal emulator.
 
 confinement: strict
 grade: devel

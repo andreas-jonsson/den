@@ -16,12 +16,10 @@ before_script:
   - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
   - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
   - cd $GOPATH/src/$REPO_NAME
-  - snap --version
   - apt-get update -qy
   - apt-get install -y unzip snapd
-  - snap --version
-  - systemctl start snapd
-  - snap install snapcraft --edge --classic
+  # - snap --version
+  # - snap install snapcraft --edge --classic
 
 stages:
     - test
@@ -41,6 +39,7 @@ compile:
       - export FULL_VERSION=${BASE_VERSION}.${CI_PIPELINE_ID}
       - go generate
       - ./tools/package/itch/build.sh
+      # ./tools/package/snap/build.sh
     artifacts:
       paths:
         - den
@@ -50,6 +49,6 @@ upload:
     stage: deploy
     script:
       - ./tools/package/itch/deploy.sh
-      - ./tools/package/snap/deploy.sh
+      # - snapcraft push --release=edge den_git_amd64.snap
     only:
       - master
