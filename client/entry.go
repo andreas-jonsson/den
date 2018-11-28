@@ -10,6 +10,7 @@ import (
 	"github.com/nsf/termbox-go"
 
 	"gitlab.com/phix/den/client/state/connect"
+	"gitlab.com/phix/den/client/state/discon"
 	"gitlab.com/phix/den/client/state/exit"
 	"gitlab.com/phix/den/client/state/intro"
 	"gitlab.com/phix/den/client/state/play"
@@ -55,6 +56,7 @@ func Start() {
 	m.SetState(intro.Name)
 
 	m.AddState(play.New(m))
+	m.AddState(discon.New(m))
 	m.AddState(connect.New(m, hostAddr))
 
 	ticker := time.NewTicker(time.Second / 30)

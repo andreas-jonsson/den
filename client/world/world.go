@@ -42,7 +42,7 @@ func (w *World) Level() []byte {
 }
 
 func (w *World) Rune(x, y int) rune {
-	if x > w.size || y > w.size || x < 0 || y < 0 {
+	if x >= w.size || y >= w.size || x < 0 || y < 0 {
 		return ' '
 	}
 

@@ -20,7 +20,7 @@ type Discon struct {
 	msg string
 }
 
-func New(m state.Switcher, host string) *Discon {
+func New(m state.Switcher) *Discon {
 	return &Discon{m: m}
 }
 

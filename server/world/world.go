@@ -34,8 +34,8 @@ func NewWorld(l level.Level) *World {
 	return w
 }
 
-func (w *World) Level() level.Level {
-	return w.orgLevel
+func (w *World) Level() []byte {
+	return w.level
 }
 
 func (w *World) Spawn(u Unit) {

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$(uname)" == "Darwin" ]; then
-    open -a Terminal -c "./osx/den $@"      
+    open -a Terminal --args "./osx/den $@"      
 else
     x-terminal-emulator -e "./linux/den $@"
 fi

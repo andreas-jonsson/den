@@ -96,11 +96,6 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 		return
 	}
 
-	if msg.Version[0] != version.Major || msg.Version[1] != version.Minor {
-		logger.Println("Version check failed:", msg.Version)
-		return
-	}
-
 	conn.SetDeadline(time.Now().Add(time.Second))
 	if err := sendSetupData(enc, id, msg); err != nil {
 		logger.Println("Player initialization failed:", err)
@@ -136,6 +131,6 @@ func sendSetupData(enc *gob.Encoder, id uint64, msg message.ClientConnect) error
 
 	var setup message.ServerSetup
 	setup.Id = id
-	//setup.Level
+	setup.Level = wld.Level()
 	return enc.Encode(&setup)
 }

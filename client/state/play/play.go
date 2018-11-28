@@ -5,12 +5,15 @@ package play
 
 import (
 	"encoding/gob"
+	"errors"
 	"net"
 	"time"
 
 	"github.com/nsf/termbox-go"
+	"gitlab.com/phix/den/client/state/discon"
 	"gitlab.com/phix/den/client/state/exit"
 	"gitlab.com/phix/den/client/world"
+	"gitlab.com/phix/den/logger"
 	"gitlab.com/phix/den/message"
 	"gitlab.com/phix/den/state"
 )
@@ -31,16 +34,29 @@ func New(m state.Switcher) *Play {
 	return &Play{m: m}
 }
 
-func (s *Play) SetupConnection(conn net.Conn) error {
+func (s *Play) setupConnection(conn net.Conn) error {
+	logger.Println("Setup connection")
+
 	s.conn = conn
 	s.enc = gob.NewEncoder(conn)
 	s.dec = gob.NewDecoder(conn)
 
+	var srvConn message.ServerConnected
+
+	s.conn.SetDeadline(time.Now().Add(time.Second))
+	if err := s.dec.Decode(&srvConn); err != nil {
+		return err
+	}
+
+	if srvConn.Result != "" {
+		return errors.New(srvConn.Result)
+	}
+
 	var setup message.ServerSetup
 
 	s.conn.SetDeadline(time.Now().Add(time.Second))
-	if err := s.enc.Encode(&setup); err != nil {
-		return nil
+	if err := s.dec.Decode(&setup); err != nil {
+		return err
 	}
 
 	s.id = setup.Id
@@ -52,7 +68,13 @@ func (s *Play) Name() string {
 	return Name
 }
 
-func (s *Play) Enter(m state.Switcher, from string, data ...interface{}) {}
+func (s *Play) Enter(m state.Switcher, from string, data ...interface{}) {
+	if err := s.setupConnection(data[0].(net.Conn)); err != nil {
+		logger.Println(err)
+		s.m.Switch(discon.Name)
+		return
+	}
+}
 
 func (s *Play) Leave(to string) {}
 
