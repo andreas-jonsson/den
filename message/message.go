@@ -7,6 +7,10 @@ import (
 	"encoding/gob"
 )
 
+type Any struct {
+	I interface{}
+}
+
 type ClientConnect struct {
 	Version [3]byte
 	Name    string

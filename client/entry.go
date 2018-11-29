@@ -59,7 +59,7 @@ func Start() {
 	m.AddState(discon.New(m))
 	m.AddState(connect.New(m, hostAddr))
 
-	ticker := time.NewTicker(time.Second / 30)
+	ticker := time.NewTicker(time.Second / 15)
 	go func() {
 		for range ticker.C {
 			termbox.Interrupt()

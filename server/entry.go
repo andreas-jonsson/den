@@ -16,6 +16,7 @@ import (
 	"gitlab.com/phix/den/level"
 	"gitlab.com/phix/den/logger"
 	"gitlab.com/phix/den/message"
+	"gitlab.com/phix/den/server/player"
 	"gitlab.com/phix/den/server/world"
 	"gitlab.com/phix/den/version"
 )
@@ -53,6 +54,7 @@ func Start() {
 	defer close(closeChan)
 
 	wld = world.NewWorld(level.Level1)
+	go wld.StartUpdate()
 
 	var playerID uint64
 	for {
@@ -60,7 +62,7 @@ func Start() {
 
 		conn, err := lsock.Accept()
 		if err != nil {
-			if err.(net.Error).Timeout() {
+			if ne, ok := err.(net.Error); ok && ne.Timeout() {
 				select {
 				case <-InterruptChan:
 					return
@@ -102,6 +104,10 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 		return
 	}
 
+	wld.Send(func(w *world.World) {
+		w.Spawn(player.NewPlayer(id))
+	})
+
 	for {
 		select {
 		case _, ok := <-closeChan:
@@ -113,6 +119,40 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 		}
 
 		conn.SetDeadline(time.Now().Add(time.Second))
+		var msg message.Any
+		if err := dec.Decode(&msg); err != nil {
+			if ne, ok := err.(net.Error); ok && ne.Timeout() {
+				continue
+			}
+			logger.Println(err)
+			return
+		}
+
+		switch t := msg.I.(type) {
+		case message.ClientInput:
+			wld.Send(func(w *world.World) {
+				u := w.Unit(id)
+				x, y := u.Position()
+				nx, ny := -1, -1
+
+				switch t.Movement {
+				case message.MoveUp:
+					nx, ny = x, y-1
+				case message.MoveDown:
+					nx, ny = x, y+1
+				case message.MoveLeft:
+					nx, ny = x-1, y
+				case message.MoveRight:
+					nx, ny = x+1, y
+				}
+
+				if nx >= 0 && ny >= 0 && w.Index(nx, ny) == message.FloorTile {
+					u.SetPosition(nx, ny)
+				}
+			})
+		default:
+			logger.Printf("Invalid message type: %T", msg.I)
+		}
 	}
 }
 

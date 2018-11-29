@@ -6,7 +6,6 @@ package world
 import (
 	"math"
 
-	"gitlab.com/phix/den/logger"
 	"gitlab.com/phix/den/message"
 )
 
@@ -41,13 +40,15 @@ func (w *World) Level() []byte {
 	return w.level
 }
 
-func (w *World) Rune(x, y int) rune {
+func (w *World) Index(x, y int) byte {
 	if x >= w.size || y >= w.size || x < 0 || y < 0 {
-		return ' '
+		return message.EmptyTile
 	}
+	return w.level[y*w.size+x]
+}
 
-	tile := w.level[y*w.size+x]
-	switch tile {
+func (w *World) Rune(x, y int) rune {
+	switch w.Index(x, y) {
 	case message.EmptyTile:
 		return ' '
 	case message.WallTile:
@@ -55,7 +56,6 @@ func (w *World) Rune(x, y int) rune {
 	case message.FloorTile:
 		return '.'
 	default:
-		logger.Fatalln("Invalid tile")
-		return 0
+		return ' '
 	}
 }

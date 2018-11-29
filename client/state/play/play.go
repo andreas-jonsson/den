@@ -31,7 +31,7 @@ type Play struct {
 }
 
 func New(m state.Switcher) *Play {
-	return &Play{m: m}
+	return &Play{m: m, posX: 1, posY: 1}
 }
 
 func (s *Play) setupConnection(conn net.Conn) error {
@@ -83,18 +83,35 @@ events:
 	for {
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:
+			posX := s.posX
+			posY := s.posY
+			move := message.NoMove
+
 			switch ev.Key {
 			case termbox.KeyEsc:
 				s.m.Switch(exit.Name)
 				return nil
 			case termbox.KeyArrowUp:
-				s.posY--
+				posY--
+				move = message.MoveUp
 			case termbox.KeyArrowDown:
-				s.posY++
+				posY++
+				move = message.MoveDown
 			case termbox.KeyArrowLeft:
-				s.posX--
+				posX--
+				move = message.MoveLeft
 			case termbox.KeyArrowRight:
-				s.posX++
+				posX++
+				move = message.MoveRight
+			}
+
+			if s.wld.Index(posX, posY) == message.FloorTile {
+				s.posX = posX
+				s.posY = posY
+
+				if err := s.sendPosition(move); err != nil {
+					return err
+				}
 			}
 		case termbox.EventError:
 			return ev.Err
@@ -119,4 +136,10 @@ func (s *Play) renderLevel(w, h int) {
 			termbox.SetCell(x, y, s.wld.Rune(cornerX+x, cornerY+y), termbox.ColorDefault, termbox.ColorDefault)
 		}
 	}
+}
+
+func (s *Play) sendPosition(move byte) error {
+	input := message.Any{message.ClientInput{move, 0}}
+	s.conn.SetDeadline(time.Now().Add(time.Second))
+	return s.enc.Encode(&input)
 }
