@@ -49,7 +49,7 @@ type ServerConnected struct {
 }
 
 type ServerSetup struct {
-	Id    uint64
+	ID    uint64
 	Level []byte
 }
 
@@ -61,12 +61,11 @@ type ServerMessage struct {
 	Message string
 }
 
-type ServerCharacters struct {
-	Characters []struct {
-		Id       uint64
-		Level    uint16
-		Position [2]uint16
-	}
+type ServerCharacter struct {
+	ID    uint64
+	Level []byte
+	PosX,
+	PosY int16
 }
 
 func init() {
@@ -76,5 +75,5 @@ func init() {
 	gob.Register(ServerConnected{})
 	gob.Register(ServerClose{})
 	gob.Register(ServerMessage{})
-	gob.Register(ServerCharacters{})
+	gob.Register([]ServerCharacter{})
 }

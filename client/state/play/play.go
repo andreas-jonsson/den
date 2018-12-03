@@ -4,13 +4,8 @@
 package play
 
 import (
-	"encoding/gob"
-	"errors"
-	"net"
-	"time"
-
 	"github.com/nsf/termbox-go"
-	"gitlab.com/phix/den/client/state/discon"
+	"gitlab.com/phix/den/client/connection"
 	"gitlab.com/phix/den/client/state/exit"
 	"gitlab.com/phix/den/client/world"
 	"gitlab.com/phix/den/logger"
@@ -24,9 +19,7 @@ type Play struct {
 	id         uint64
 	posX, posY int
 	wld        *world.World
-	conn       net.Conn
-	enc        *gob.Encoder
-	dec        *gob.Decoder
+	conn       *connection.Connection
 	m          state.Switcher
 }
 
@@ -34,46 +27,14 @@ func New(m state.Switcher) *Play {
 	return &Play{m: m, posX: 1, posY: 1}
 }
 
-func (s *Play) setupConnection(conn net.Conn) error {
-	logger.Println("Setup connection")
-
-	s.conn = conn
-	s.enc = gob.NewEncoder(conn)
-	s.dec = gob.NewDecoder(conn)
-
-	var srvConn message.ServerConnected
-
-	s.conn.SetDeadline(time.Now().Add(time.Second))
-	if err := s.dec.Decode(&srvConn); err != nil {
-		return err
-	}
-
-	if srvConn.Result != "" {
-		return errors.New(srvConn.Result)
-	}
-
-	var setup message.ServerSetup
-
-	s.conn.SetDeadline(time.Now().Add(time.Second))
-	if err := s.dec.Decode(&setup); err != nil {
-		return err
-	}
-
-	s.id = setup.Id
-	s.wld = world.NewWorld(setup.Level)
-	return nil
-}
-
 func (s *Play) Name() string {
 	return Name
 }
 
 func (s *Play) Enter(m state.Switcher, from string, data ...interface{}) {
-	if err := s.setupConnection(data[0].(net.Conn)); err != nil {
-		logger.Println(err)
-		s.m.Switch(discon.Name)
-		return
-	}
+	s.conn = connection.Current
+	s.id = s.conn.Setup().ID
+	s.wld = s.conn.World()
 }
 
 func (s *Play) Leave(to string) {}
@@ -120,6 +81,19 @@ events:
 		}
 	}
 
+	msg, err := s.conn.Decode()
+	if err != nil {
+		return err
+	}
+
+	switch msg.(type) {
+	case nil:
+	case []message.ServerCharacter:
+
+	default:
+		logger.Fatalf("Invalid message: %T", msg)
+	}
+
 	w, h := termbox.Size()
 	s.renderLevel(w, h)
 
@@ -139,7 +113,5 @@ func (s *Play) renderLevel(w, h int) {
 }
 
 func (s *Play) sendPosition(move byte) error {
-	input := message.Any{message.ClientInput{move, 0}}
-	s.conn.SetDeadline(time.Now().Add(time.Second))
-	return s.enc.Encode(&input)
+	return s.conn.Encode(&message.ClientInput{move, 0})
 }

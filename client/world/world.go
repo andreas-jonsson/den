@@ -9,11 +9,6 @@ import (
 	"gitlab.com/phix/den/message"
 )
 
-const (
-	Ground = iota
-	Wall
-)
-
 type Character struct {
 	Id       uint64
 	Level    uint16

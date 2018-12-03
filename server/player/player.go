@@ -13,7 +13,7 @@ func NewPlayer(id uint64) *Player {
 	return &Player{id: id}
 }
 
-func (p *Player) Id() uint64 {
+func (p *Player) ID() uint64 {
 	return p.id
 }
 

@@ -108,6 +108,11 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 		w.Spawn(player.NewPlayer(id))
 	})
 
+	charactertTimer := time.NewTicker(time.Second / 15)
+	defer charactertTimer.Stop()
+
+	messageQueue := make(chan func() error, 128)
+
 	for {
 		select {
 		case _, ok := <-closeChan:
@@ -115,6 +120,31 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 				logger.Fatalln("We should never receive on this channel")
 			}
 			return
+		case f := <-messageQueue:
+			if err := f(); err != nil {
+				logger.Println(err)
+				return
+			}
+		case <-charactertTimer.C:
+			wld.Send(func(w *world.World) {
+				var characters []message.ServerCharacter
+				for id, u := range w.Units() {
+					x, y := u.Position()
+					characters = append(characters, message.ServerCharacter{
+						ID:    id,
+						Level: wld.Level(),
+						PosX:  int16(x),
+						PosY:  int16(y),
+					})
+				}
+
+				messageQueue <- func() error {
+					if err := enc.Encode(&message.Any{characters}); err != nil {
+						return err
+					}
+					return nil
+				}
+			})
 		default:
 		}
 
@@ -170,7 +200,7 @@ func sendSetupData(enc *gob.Encoder, id uint64, msg message.ClientConnect) error
 	}
 
 	var setup message.ServerSetup
-	setup.Id = id
+	setup.ID = id
 	setup.Level = wld.Level()
 	return enc.Encode(&setup)
 }

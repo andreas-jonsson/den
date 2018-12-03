@@ -6,12 +6,15 @@ package connect
 import (
 	"encoding/gob"
 	"net"
+	"time"
 
 	"gitlab.com/phix/den/message"
 
 	"github.com/nsf/termbox-go"
+	"gitlab.com/phix/den/client/connection"
 	"gitlab.com/phix/den/client/state/discon"
 	"gitlab.com/phix/den/client/state/play"
+	"gitlab.com/phix/den/client/world"
 	"gitlab.com/phix/den/logger"
 	"gitlab.com/phix/den/state"
 	"gitlab.com/phix/den/version"
@@ -22,7 +25,7 @@ const Name = "connect"
 type Connect struct {
 	m        state.Switcher
 	host     string
-	connChan chan net.Conn
+	connChan chan *connection.Connection
 }
 
 func New(m state.Switcher, host string) *Connect {
@@ -37,7 +40,7 @@ func (s *Connect) Name() string {
 }
 
 func (s *Connect) Enter(m state.Switcher, from string, data ...interface{}) {
-	s.connChan = make(chan net.Conn, 1)
+	s.connChan = make(chan *connection.Connection, 1)
 	go func() {
 		conn, err := net.Dial("tcp", s.host)
 		if err != nil {
@@ -47,17 +50,45 @@ func (s *Connect) Enter(m state.Switcher, from string, data ...interface{}) {
 		}
 
 		enc := gob.NewEncoder(conn)
+		dec := gob.NewDecoder(conn)
+
 		msg := message.ClientConnect{
 			Name:    "noname",
 			Version: [3]byte{version.Major, version.Minor, version.Patch},
 		}
 
-		if enc.Encode(&msg) != nil {
-			logger.Println("Could not send connection request")
+		conn.SetDeadline(time.Now().Add(time.Second))
+		if err := enc.Encode(&msg); err != nil {
+			logger.Println(err)
 			close(s.connChan)
 			return
 		}
-		s.connChan <- conn
+
+		var srvConn message.ServerConnected
+
+		conn.SetDeadline(time.Now().Add(time.Second))
+		if err := dec.Decode(&srvConn); err != nil {
+			logger.Println(err)
+			close(s.connChan)
+			return
+		}
+
+		if srvConn.Result != "" {
+			logger.Println(srvConn.Result)
+			close(s.connChan)
+			return
+		}
+
+		var setup message.ServerSetup
+
+		conn.SetDeadline(time.Now().Add(time.Second))
+		if err := dec.Decode(&setup); err != nil {
+			logger.Println(err)
+			close(s.connChan)
+			return
+		}
+
+		s.connChan <- connection.New(conn, setup, world.NewWorld(setup.Level))
 	}()
 }
 
@@ -89,8 +120,11 @@ events:
 			s.m.Switch(discon.Name, discon.CouldNotConnectMsg)
 			return nil
 		}
+
 		s.connChan = nil
-		s.m.Switch(play.Name, conn)
+		connection.Current = conn
+
+		s.m.Switch(play.Name)
 		return nil
 	default:
 	}

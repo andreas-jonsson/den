@@ -13,7 +13,7 @@ import (
 )
 
 type Unit interface {
-	Id() uint64
+	ID() uint64
 	Position() (int, int)
 	SetPosition(x, y int)
 	Update()
@@ -32,7 +32,7 @@ func NewWorld(l level.Level) *World {
 	w := &World{
 		size:     size,
 		orgLevel: l,
-		jobs:     make(chan func(w *World)),
+		jobs:     make(chan func(w *World), 128),
 		units:    make(map[uint64]Unit),
 	}
 
@@ -58,6 +58,10 @@ func (w *World) Unit(id uint64) Unit {
 	return u
 }
 
+func (w *World) Units() map[uint64]Unit {
+	return w.units
+}
+
 func (w *World) Send(f func(*World)) {
 	w.jobs <- f
 }
@@ -69,7 +73,7 @@ func (w *World) StartUpdate() {
 }
 
 func (w *World) Spawn(u Unit) {
-	id := u.Id()
+	id := u.ID()
 	if _, ok := w.units[id]; ok {
 		log.Fatalln("Unit is already spawned:", id)
 	}
