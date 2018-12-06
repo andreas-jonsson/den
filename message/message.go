@@ -7,6 +7,10 @@ import (
 	"encoding/gob"
 )
 
+func Wrap(v interface{}) *Any {
+	return &Any{I: v}
+}
+
 type Any struct {
 	I interface{}
 }

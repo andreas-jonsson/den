@@ -55,7 +55,7 @@ func (c *Connection) Setup() message.ServerSetup {
 
 func (c *Connection) Encode(v interface{}) error {
 	c.conn.SetWriteDeadline(time.Now().Add(time.Second))
-	return c.enc.Encode(message.Any{v})
+	return c.enc.Encode(message.Wrap(v))
 }
 
 func (c *Connection) Decode() (interface{}, error) {

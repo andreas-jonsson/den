@@ -140,7 +140,7 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 
 				messageQueue <- func() error {
 					conn.SetWriteDeadline(time.Now().Add(time.Second))
-					if err := enc.Encode(&message.Any{characters}); err != nil {
+					if err := enc.Encode(message.Wrap(characters)); err != nil {
 						return err
 					}
 					return nil
