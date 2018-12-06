@@ -138,5 +138,8 @@ func (s *Play) renderCharacters(w, h int) {
 }
 
 func (s *Play) sendPosition(move byte) error {
-	return s.conn.Encode(&message.ClientInput{move, 0})
+	return s.conn.Encode(&message.ClientInput{
+		Movement: move,
+		Action:   0,
+	})
 }
