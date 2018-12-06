@@ -54,7 +54,7 @@ func (c *Connection) Setup() message.ServerSetup {
 }
 
 func (c *Connection) Encode(v interface{}) error {
-	c.conn.SetDeadline(time.Now().Add(time.Second))
+	c.conn.SetWriteDeadline(time.Now().Add(time.Second))
 	return c.enc.Encode(message.Any{v})
 }
 
@@ -84,7 +84,7 @@ func (c *Connection) startDecoder() {
 		default:
 		}
 
-		c.conn.SetDeadline(time.Now().Add(time.Second))
+		c.conn.SetReadDeadline(time.Now().Add(time.Second))
 		if err := c.dec.Decode(&msg); err != nil {
 			if ne, ok := err.(net.Error); ok && ne.Timeout() {
 				continue

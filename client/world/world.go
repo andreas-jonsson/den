@@ -9,30 +9,31 @@ import (
 	"gitlab.com/phix/den/message"
 )
 
-type Character struct {
-	Id       uint64
-	Level    uint16
-	Position [2]uint16
-}
-
 type World struct {
 	size  int
 	level []byte
 
-	characters map[uint64]Character
+	characters []message.ServerCharacter
 }
 
 func NewWorld(level []byte) *World {
 	size := int(math.Sqrt(float64(len(level))))
 	return &World{
-		size:       size,
-		level:      level,
-		characters: make(map[uint64]Character),
+		size:  size,
+		level: level,
 	}
 }
 
 func (w *World) Level() []byte {
 	return w.level
+}
+
+func (w *World) Characters() []message.ServerCharacter {
+	return w.characters
+}
+
+func (w *World) UpdateCharacters(characters []message.ServerCharacter) {
+	w.characters = characters
 }
 
 func (w *World) Index(x, y int) byte {

@@ -132,13 +132,14 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 					x, y := u.Position()
 					characters = append(characters, message.ServerCharacter{
 						ID:    id,
-						Level: wld.Level(),
+						Level: 1,
 						PosX:  int16(x),
 						PosY:  int16(y),
 					})
 				}
 
 				messageQueue <- func() error {
+					conn.SetWriteDeadline(time.Now().Add(time.Second))
 					if err := enc.Encode(&message.Any{characters}); err != nil {
 						return err
 					}
@@ -148,7 +149,7 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 		default:
 		}
 
-		conn.SetDeadline(time.Now().Add(time.Second))
+		conn.SetReadDeadline(time.Now().Add(time.Second))
 		var msg message.Any
 		if err := dec.Decode(&msg); err != nil {
 			if ne, ok := err.(net.Error); ok && ne.Timeout() {

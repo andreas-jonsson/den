@@ -6,6 +6,7 @@ package play
 import (
 	"github.com/nsf/termbox-go"
 	"gitlab.com/phix/den/client/connection"
+	"gitlab.com/phix/den/client/state/discon"
 	"gitlab.com/phix/den/client/state/exit"
 	"gitlab.com/phix/den/client/world"
 	"gitlab.com/phix/den/logger"
@@ -71,7 +72,8 @@ events:
 				s.posY = posY
 
 				if err := s.sendPosition(move); err != nil {
-					return err
+					s.m.Switch(discon.Name)
+					return nil
 				}
 			}
 		case termbox.EventError:
@@ -83,21 +85,22 @@ events:
 
 	msg, err := s.conn.Decode()
 	if err != nil {
-		return err
+		s.m.Switch(discon.Name)
+		return nil
 	}
 
-	switch msg.(type) {
+	switch t := msg.(type) {
 	case nil:
 	case []message.ServerCharacter:
-
+		s.wld.UpdateCharacters(t)
 	default:
 		logger.Fatalf("Invalid message: %T", msg)
 	}
 
 	w, h := termbox.Size()
 	s.renderLevel(w, h)
+	s.renderCharacters(w, h)
 
-	termbox.SetCell(w/2, h/2, '@', termbox.ColorDefault, termbox.ColorDefault)
 	return nil
 }
 
@@ -108,6 +111,28 @@ func (s *Play) renderLevel(w, h int) {
 	for y := 0; y < w; y++ {
 		for x := 0; x < w; x++ {
 			termbox.SetCell(x, y, s.wld.Rune(cornerX+x, cornerY+y), termbox.ColorDefault, termbox.ColorDefault)
+		}
+	}
+}
+
+func (s *Play) renderCharacters(w, h int) {
+	const playerLevel = 1
+
+	cornerX := s.posX - w/2
+	cornerY := s.posY - h/2
+
+	for _, c := range s.wld.Characters() {
+		if c.ID == s.id {
+			termbox.SetCell(w/2, h/2, '@', termbox.ColorDefault, termbox.ColorDefault)
+		} else {
+			r := '0'
+			switch {
+			case c.Level > playerLevel:
+				r = 'O'
+			case c.Level < playerLevel:
+				r = 'o'
+			}
+			termbox.SetCell(cornerX+int(c.PosX), cornerY+int(c.PosY), r, termbox.ColorDefault, termbox.ColorDefault)
 		}
 	}
 }

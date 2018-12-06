@@ -62,8 +62,8 @@ type ServerMessage struct {
 }
 
 type ServerCharacter struct {
-	ID    uint64
-	Level []byte
+	ID uint64
+	Level,
 	PosX,
 	PosY int16
 }
