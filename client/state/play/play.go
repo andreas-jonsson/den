@@ -123,7 +123,8 @@ func (s *Play) renderCharacters(w, h int) {
 
 	for _, c := range s.wld.Characters() {
 		if c.ID == s.id {
-			termbox.SetCell(w/2, h/2, '@', termbox.ColorDefault, termbox.ColorDefault)
+			s.posX = int(c.PosX)
+			s.posY = int(c.PosY)
 		} else {
 			r := '0'
 			switch {
@@ -135,6 +136,8 @@ func (s *Play) renderCharacters(w, h int) {
 			termbox.SetCell(cornerX+int(c.PosX), cornerY+int(c.PosY), r, termbox.ColorDefault, termbox.ColorDefault)
 		}
 	}
+
+	termbox.SetCell(w/2, h/2, '@', termbox.ColorDefault, termbox.ColorDefault)
 }
 
 func (s *Play) sendPosition(move byte) error {

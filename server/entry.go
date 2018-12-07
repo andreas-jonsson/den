@@ -105,10 +105,12 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 	}
 
 	wld.Send(func(w *world.World) {
-		w.Spawn(player.NewPlayer(id))
+		p := player.NewPlayer(id)
+		p.SetPosition(1, 1)
+		w.Spawn(p)
 	})
 
-	charactertTimer := time.NewTicker(time.Second / 15)
+	charactertTimer := time.NewTicker(time.Second / 10)
 	defer charactertTimer.Stop()
 
 	messageQueue := make(chan func() error, 128)
@@ -130,6 +132,7 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 				var characters []message.ServerCharacter
 				for id, u := range w.Units() {
 					x, y := u.Position()
+
 					characters = append(characters, message.ServerCharacter{
 						ID:    id,
 						Level: 1,
@@ -149,7 +152,7 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 		default:
 		}
 
-		conn.SetReadDeadline(time.Now().Add(time.Second))
+		conn.SetReadDeadline(time.Now().Add(time.Millisecond))
 		var msg message.Any
 		if err := dec.Decode(&msg); err != nil {
 			if ne, ok := err.(net.Error); ok && ne.Timeout() {
@@ -164,7 +167,7 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 			wld.Send(func(w *world.World) {
 				u := w.Unit(id)
 				x, y := u.Position()
-				nx, ny := -1, -1
+				nx, ny := 0, 0
 
 				switch t.Movement {
 				case message.MoveUp:
@@ -175,6 +178,8 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 					nx, ny = x-1, y
 				case message.MoveRight:
 					nx, ny = x+1, y
+				default:
+					return
 				}
 
 				if nx >= 0 && ny >= 0 && w.Index(nx, ny) == message.FloorTile {
