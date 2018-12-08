@@ -46,6 +46,10 @@ handle_err:
 	internalLogger = log.New(ioutil.Discard, "", 0)
 }
 
+func IsInitialized() bool {
+	return internalLogger != nil
+}
+
 func Shutdown() {
 	if connection != nil {
 		connection.Close()

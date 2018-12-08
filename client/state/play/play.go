@@ -123,8 +123,9 @@ func (s *Play) renderCharacters(w, h int) {
 
 	for _, c := range s.wld.Characters() {
 		if c.ID == s.id {
-			s.posX = int(c.PosX)
-			s.posY = int(c.PosY)
+			// TODO: Sync position if we get to much out of sync.
+			//s.posX = int(c.PosX)
+			//s.posY = int(c.PosY)
 		} else {
 			r := '0'
 			switch {
@@ -133,7 +134,7 @@ func (s *Play) renderCharacters(w, h int) {
 			case c.Level < playerLevel:
 				r = 'o'
 			}
-			termbox.SetCell(cornerX+int(c.PosX), cornerY+int(c.PosY), r, termbox.ColorDefault, termbox.ColorDefault)
+			termbox.SetCell(int(c.PosX)-cornerX, int(c.PosY)-cornerY, r, termbox.ColorDefault, termbox.ColorDefault)
 		}
 	}
 

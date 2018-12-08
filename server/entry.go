@@ -40,6 +40,10 @@ func Start() {
 		ServerExitedChan <- struct{}{}
 	}()
 
+	if !logger.IsInitialized() {
+		logger.Initialize(os.Stdout)
+	}
+
 	lsock, err := net.Listen("tcp", fmt.Sprintf(":%d", listenPort))
 	if err != nil {
 		return
