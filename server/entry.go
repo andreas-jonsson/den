@@ -60,6 +60,8 @@ func Start() {
 	wld = world.NewWorld(level.Level1)
 	go wld.StartUpdate()
 
+	logger.Println("Server started!")
+
 	var playerID uint64
 	for {
 		lsock.(*net.TCPListener).SetDeadline(time.Now().Add(time.Second))

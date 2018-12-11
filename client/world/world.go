@@ -9,9 +9,15 @@ import (
 	"gitlab.com/phix/den/message"
 )
 
+const (
+	Visited byte = 1 << iota
+	Visible
+)
+
 type World struct {
-	size  int
-	level []byte
+	size int
+	level,
+	flags []byte
 
 	characters []message.ServerCharacter
 }
@@ -21,11 +27,27 @@ func NewWorld(level []byte) *World {
 	return &World{
 		size:  size,
 		level: level,
+		flags: make([]byte, len(level)),
 	}
 }
 
-func (w *World) Level() []byte {
-	return w.level
+func (w *World) ClearFlags() {
+	for i := range w.flags {
+		w.flags[i] = 0
+	}
+}
+
+func (w *World) SetFlag(x, y int, f byte) {
+	if x < w.size && y < w.size && x >= 0 && y >= 0 {
+		w.flags[y*w.size+x] = f
+	}
+}
+
+func (w *World) Flag(x, y int) byte {
+	if x >= w.size || y >= w.size || x < 0 || y < 0 {
+		return 0
+	}
+	return w.flags[y*w.size+x]
 }
 
 func (w *World) Characters() []message.ServerCharacter {
@@ -44,7 +66,11 @@ func (w *World) Index(x, y int) byte {
 }
 
 func (w *World) Rune(x, y int) rune {
-	switch w.Index(x, y) {
+	return TileToRune(w.Index(x, y))
+}
+
+func TileToRune(t byte) rune {
+	switch t {
 	case message.EmptyTile:
 		return ' '
 	case message.WallTile:

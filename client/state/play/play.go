@@ -4,7 +4,9 @@
 package play
 
 import (
-	"github.com/nsf/termbox-go"
+	"math"
+
+	termbox "github.com/nsf/termbox-go"
 	"gitlab.com/phix/den/client/connection"
 	"gitlab.com/phix/den/client/state/discon"
 	"gitlab.com/phix/den/client/state/exit"
@@ -109,8 +111,22 @@ func (s *Play) renderLevel(w, h int) {
 	cornerY := s.posY - h/2
 
 	for y := 0; y < w; y++ {
+		wY := cornerY + y
 		for x := 0; x < w; x++ {
-			termbox.SetCell(x, y, s.wld.Rune(cornerX+x, cornerY+y), termbox.ColorDefault, termbox.ColorDefault)
+			wX := cornerX + x
+			t := s.wld.Index(wX, wY)
+			if t == message.EmptyTile {
+				continue
+			}
+
+			flags := s.wld.Flag(wX, wY)
+			if (t == message.WallTile && flags&world.Visited != 0) || s.calculateFov(wX, wY) {
+				s.wld.SetFlag(wX, wY, flags|world.Visited|world.Visible)
+				termbox.SetCell(x, y, world.TileToRune(t), termbox.ColorDefault, termbox.ColorDefault)
+			} else {
+				// Remove visible flag.
+				s.wld.SetFlag(wX, wY, flags&world.Visited)
+			}
 		}
 	}
 }
@@ -127,6 +143,13 @@ func (s *Play) renderCharacters(w, h int) {
 			//s.posX = int(c.PosX)
 			//s.posY = int(c.PosY)
 		} else {
+			viewX := int(c.PosX) - cornerX
+			viewY := int(c.PosY) - cornerY
+
+			if s.wld.Flag(int(c.PosX), int(c.PosY))&world.Visible == 0 {
+				continue
+			}
+
 			r := '0'
 			switch {
 			case c.Level > playerLevel:
@@ -134,7 +157,7 @@ func (s *Play) renderCharacters(w, h int) {
 			case c.Level < playerLevel:
 				r = 'o'
 			}
-			termbox.SetCell(int(c.PosX)-cornerX, int(c.PosY)-cornerY, r, termbox.ColorDefault, termbox.ColorDefault)
+			termbox.SetCell(viewX, viewY, r, termbox.ColorDefault, termbox.ColorDefault)
 		}
 	}
 
@@ -146,4 +169,34 @@ func (s *Play) sendPosition(move byte) error {
 		Movement: move,
 		Action:   0,
 	})
+}
+
+func (s *Play) calculateFov(x, y int) bool {
+	vx := float64(s.posX - x)
+	vy := float64(s.posY - y)
+
+	l := math.Sqrt((vx * vx) + (vy * vy))
+
+	const minViewDist = 3
+	const maxViewDist = 10
+
+	if l > maxViewDist {
+		return false
+	}
+
+	vx /= l
+	vy /= l
+
+	ox := float64(x) + vx + 0.5
+	oy := float64(y) + vy + 0.5
+
+	for i := 0; i < int(l)-minViewDist; i++ {
+		t := s.wld.Index(int(ox), int(oy))
+		if t == message.WallTile {
+			return false
+		}
+		ox += vx
+		oy += vy
+	}
+	return true
 }
