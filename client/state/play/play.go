@@ -121,7 +121,8 @@ func (s *Play) renderLevel(w, h int) {
 
 			flags := s.wld.Flag(wX, wY)
 			if (t == message.WallTile && flags&world.Visited != 0) || s.calculateFov(wX, wY) {
-				s.wld.SetFlag(wX, wY, flags|world.Visited|world.Visible)
+				//s.wld.SetFlag(wX, wY, flags|world.Visited|world.Visible)
+				s.wld.SetFlag(wX, wY, flags|world.Visible)
 				termbox.SetCell(x, y, world.TileToRune(t), termbox.ColorDefault, termbox.ColorDefault)
 			} else {
 				// Remove visible flag.
@@ -177,8 +178,8 @@ func (s *Play) calculateFov(x, y int) bool {
 
 	l := math.Sqrt((vx * vx) + (vy * vy))
 
-	const minViewDist = 3
-	const maxViewDist = 10
+	const minViewDist = 1
+	const maxViewDist = 16
 
 	if l > maxViewDist {
 		return false

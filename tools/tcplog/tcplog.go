@@ -18,6 +18,8 @@ func init() {
 }
 
 func main() {
+	flag.Parse()
+
 	conn, err := net.Dial("tcp", host)
 	if err != nil {
 		panic(err)

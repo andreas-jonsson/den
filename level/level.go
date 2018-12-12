@@ -3,4 +3,4 @@
 
 package level
 
-type Level []rune
+type Level []byte
