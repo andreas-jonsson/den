@@ -10,7 +10,7 @@ type Player struct {
 }
 
 func NewPlayer(id uint64) *Player {
-	return &Player{id: id}
+	return &Player{id: id, lvl: 1}
 }
 
 func (p *Player) ID() uint64 {
@@ -19,6 +19,10 @@ func (p *Player) ID() uint64 {
 
 func (p *Player) Level() int {
 	return p.lvl
+}
+
+func (p *Player) SetLevel(lvl int) {
+	p.lvl = lvl
 }
 
 func (p *Player) Position() (int, int) {
@@ -31,4 +35,8 @@ func (p *Player) SetPosition(x, y int) {
 }
 
 func (p *Player) Update() {
+}
+
+func (p *Player) Die() {
+	p.lvl = 0
 }

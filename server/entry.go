@@ -116,6 +116,10 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 		w.Spawn(p)
 	})
 
+	defer wld.Send(func(w *world.World) {
+		w.Unspawn(w.Unit(id))
+	})
+
 	charactertTimer := time.NewTicker(time.Second / 10)
 	defer charactertTimer.Stop()
 
@@ -137,11 +141,15 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 			wld.Send(func(w *world.World) {
 				var characters []message.ServerCharacter
 				for id, u := range w.Units() {
-					x, y := u.Position()
+					c, ok := u.(world.Character)
+					if !ok {
+						continue
+					}
 
+					x, y := c.Position()
 					characters = append(characters, message.ServerCharacter{
 						ID:    id,
-						Level: 1,
+						Level: int16(c.Level()),
 						PosX:  int16(x),
 						PosY:  int16(y),
 					})
@@ -171,8 +179,8 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 		switch t := msg.I.(type) {
 		case message.ClientInput:
 			wld.Send(func(w *world.World) {
-				u := w.Unit(id)
-				x, y := u.Position()
+				c := w.Unit(id).(world.Character)
+				x, y := c.Position()
 				nx, ny := 0, 0
 
 				switch t.Movement {
@@ -189,7 +197,38 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 				}
 
 				if nx >= 0 && ny >= 0 && w.Index(nx, ny) == message.FloorTile {
-					u.SetPosition(nx, ny)
+					c.SetPosition(nx, ny)
+
+					for id, otherUnit := range w.Units() {
+						if id == c.ID() {
+							continue
+						}
+
+						otherCharacter, ok := otherUnit.(world.Character)
+						if !ok {
+							continue
+						}
+
+						x, y := otherCharacter.Position()
+						if x == nx && y == ny {
+							playerLevel := c.Level()
+							otherLevel := otherCharacter.Level()
+
+							switch {
+							case playerLevel > otherLevel:
+								otherCharacter.Die()
+								c.SetLevel(playerLevel + 1)
+							case playerLevel < otherLevel:
+								c.Die()
+							default:
+								if time.Now().UnixNano()%2 == 0 {
+									otherCharacter.Die()
+								} else {
+									c.Die()
+								}
+							}
+						}
+					}
 				}
 			})
 		default:

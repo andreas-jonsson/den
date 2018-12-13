@@ -18,6 +18,14 @@ type Unit interface {
 	Update()
 }
 
+type Character interface {
+	Unit
+
+	Level() int
+	SetLevel(int)
+	Die()
+}
+
 type World struct {
 	size     int
 	orgLevel level.Level
@@ -77,6 +85,14 @@ func (w *World) Spawn(u Unit) {
 		log.Fatalln("Unit is already spawned:", id)
 	}
 	w.units[id] = u
+}
+
+func (w *World) Unspawn(u Unit) {
+	id := u.ID()
+	if _, ok := w.units[id]; !ok {
+		log.Fatalln("Unit is not spawned:", id)
+	}
+	delete(w.units, id)
 }
 
 func (w *World) Update() {

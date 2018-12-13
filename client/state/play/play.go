@@ -19,15 +19,21 @@ import (
 const Name = "play"
 
 type Play struct {
-	id         uint64
-	posX, posY int
-	wld        *world.World
-	conn       *connection.Connection
-	m          state.Switcher
+	id          uint64
+	posX, posY  int
+	playerLevel int
+	wld         *world.World
+	conn        *connection.Connection
+	m           state.Switcher
 }
 
 func New(m state.Switcher) *Play {
-	return &Play{m: m, posX: 1, posY: 1}
+	return &Play{
+		m:           m,
+		posX:        1,
+		posY:        1,
+		playerLevel: -1,
+	}
 }
 
 func (s *Play) Name() string {
@@ -103,6 +109,10 @@ events:
 	s.renderLevel(w, h)
 	s.renderCharacters(w, h)
 
+	if s.playerLevel == 0 {
+		s.m.Switch(discon.Name, "Dead!")
+	}
+
 	return nil
 }
 
@@ -120,21 +130,27 @@ func (s *Play) renderLevel(w, h int) {
 			}
 
 			flags := s.wld.Flag(wX, wY)
+			vx := float64(s.posX - wX)
+			vy := float64(s.posY - wY)
+			l := math.Sqrt((vx * vx) + (vy * vy))
+
+			const fogDist = 24
+			if l > fogDist {
+				flags &= ^world.Visited
+			}
+
 			if (t == message.WallTile && flags&world.Visited != 0) || s.calculateFov(wX, wY) {
-				//s.wld.SetFlag(wX, wY, flags|world.Visited|world.Visible)
-				s.wld.SetFlag(wX, wY, flags|world.Visible)
+				s.wld.SetFlag(wX, wY, flags|world.Visited|world.Visible)
 				termbox.SetCell(x, y, world.TileToRune(t), termbox.ColorDefault, termbox.ColorDefault)
 			} else {
 				// Remove visible flag.
-				s.wld.SetFlag(wX, wY, flags&world.Visited)
+				s.wld.SetFlag(wX, wY, flags&^world.Visible)
 			}
 		}
 	}
 }
 
 func (s *Play) renderCharacters(w, h int) {
-	const playerLevel = 1
-
 	cornerX := s.posX - w/2
 	cornerY := s.posY - h/2
 
@@ -143,6 +159,8 @@ func (s *Play) renderCharacters(w, h int) {
 			// TODO: Sync position if we get to much out of sync.
 			//s.posX = int(c.PosX)
 			//s.posY = int(c.PosY)
+
+			s.playerLevel = int(c.Level)
 		} else {
 			viewX := int(c.PosX) - cornerX
 			viewY := int(c.PosY) - cornerY
@@ -153,9 +171,9 @@ func (s *Play) renderCharacters(w, h int) {
 
 			r := '0'
 			switch {
-			case c.Level > playerLevel:
+			case int(c.Level) > s.playerLevel:
 				r = 'O'
-			case c.Level < playerLevel:
+			case int(c.Level) < s.playerLevel:
 				r = 'o'
 			}
 			termbox.SetCell(viewX, viewY, r, termbox.ColorDefault, termbox.ColorDefault)
@@ -179,7 +197,7 @@ func (s *Play) calculateFov(x, y int) bool {
 	l := math.Sqrt((vx * vx) + (vy * vy))
 
 	const minViewDist = 1
-	const maxViewDist = 16
+	const maxViewDist = 12
 
 	if l > maxViewDist {
 		return false
