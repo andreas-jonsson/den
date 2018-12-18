@@ -21,6 +21,8 @@ type Unit interface {
 type Character interface {
 	Unit
 
+	Alive() bool
+	Keys() int
 	Level() int
 	SetLevel(int)
 	Die()

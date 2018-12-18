@@ -140,19 +140,25 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 		case <-charactertTimer.C:
 			wld.Send(func(w *world.World) {
 				var characters []message.ServerCharacter
-				for id, u := range w.Units() {
+				for uid, u := range w.Units() {
 					c, ok := u.(world.Character)
 					if !ok {
 						continue
 					}
 
 					x, y := c.Position()
-					characters = append(characters, message.ServerCharacter{
-						ID:    id,
+					cmsg := message.ServerCharacter{
+						ID:    uid,
 						Level: int16(c.Level()),
 						PosX:  int16(x),
 						PosY:  int16(y),
-					})
+						Alive: c.Alive(),
+					}
+
+					if uid == id {
+						cmsg.Keys = int16(c.Keys())
+					}
+					characters = append(characters, cmsg)
 				}
 
 				messageQueue <- func() error {
@@ -205,7 +211,7 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 						}
 
 						otherCharacter, ok := otherUnit.(world.Character)
-						if !ok {
+						if !ok || !otherCharacter.Alive() {
 							continue
 						}
 

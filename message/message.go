@@ -28,16 +28,8 @@ const (
 	MoveRight
 )
 
-const (
-	ActionA byte = 1 << iota
-	ActionB
-	ActionC
-	ActionD
-)
-
 type ClientInput struct {
-	Movement,
-	Action byte
+	Movement byte
 }
 
 type ClientClose struct{}
@@ -68,8 +60,10 @@ type ServerMessage struct {
 type ServerCharacter struct {
 	ID uint64
 	Level,
+	Keys,
 	PosX,
 	PosY int16
+	Alive bool
 }
 
 func init() {

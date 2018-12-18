@@ -4,6 +4,7 @@
 package play
 
 import (
+	"fmt"
 	"math"
 
 	termbox "github.com/nsf/termbox-go"
@@ -19,12 +20,13 @@ import (
 const Name = "play"
 
 type Play struct {
-	id          uint64
-	posX, posY  int
-	playerLevel int
-	wld         *world.World
-	conn        *connection.Connection
-	m           state.Switcher
+	id                uint64
+	posX, posY        int
+	playerLevel, keys int
+	alive             bool
+	wld               *world.World
+	conn              *connection.Connection
+	m                 state.Switcher
 }
 
 func New(m state.Switcher) *Play {
@@ -32,7 +34,8 @@ func New(m state.Switcher) *Play {
 		m:           m,
 		posX:        1,
 		posY:        1,
-		playerLevel: -1,
+		playerLevel: 1,
+		alive:       true,
 	}
 }
 
@@ -75,7 +78,7 @@ events:
 				move = message.MoveRight
 			}
 
-			if s.wld.Index(posX, posY) == message.FloorTile {
+			if s.alive && s.wld.Index(posX, posY) == message.FloorTile {
 				s.posX = posX
 				s.posY = posY
 
@@ -108,10 +111,7 @@ events:
 	w, h := termbox.Size()
 	s.renderLevel(w, h)
 	s.renderCharacters(w, h)
-
-	if s.playerLevel == 0 {
-		s.m.Switch(discon.Name, "Dead!")
-	}
+	s.renderUI(w, h)
 
 	return nil
 }
@@ -160,8 +160,10 @@ func (s *Play) renderCharacters(w, h int) {
 			//s.posX = int(c.PosX)
 			//s.posY = int(c.PosY)
 
+			s.alive = c.Alive
+			s.keys = int(c.Keys)
 			s.playerLevel = int(c.Level)
-		} else {
+		} else if c.Alive {
 			viewX := int(c.PosX) - cornerX
 			viewY := int(c.PosY) - cornerY
 
@@ -180,14 +182,13 @@ func (s *Play) renderCharacters(w, h int) {
 		}
 	}
 
-	termbox.SetCell(w/2, h/2, '@', termbox.ColorDefault, termbox.ColorDefault)
+	if s.alive {
+		termbox.SetCell(w/2, h/2, '@', termbox.ColorDefault, termbox.ColorDefault)
+	}
 }
 
 func (s *Play) sendPosition(move byte) error {
-	return s.conn.Encode(&message.ClientInput{
-		Movement: move,
-		Action:   0,
-	})
+	return s.conn.Encode(&message.ClientInput{Movement: move})
 }
 
 func (s *Play) calculateFov(x, y int) bool {
@@ -218,4 +219,24 @@ func (s *Play) calculateFov(x, y int) bool {
 		oy += vy
 	}
 	return true
+}
+
+func (s *Play) renderUI(w, h int) {
+	print(0, 0, true, fmt.Sprintf("Level: %d", s.playerLevel))
+	print(16, 0, true, fmt.Sprintf("Keys: %d", s.keys))
+
+	if !s.alive {
+		msg := "   You are dead!   "
+		print(w/2-len(msg)/2, h/2, true, msg)
+	}
+}
+
+func print(x, y int, inv bool, msg string) {
+	attrib := termbox.ColorDefault
+	if inv {
+		attrib |= termbox.AttrReverse
+	}
+	for i, r := range msg {
+		termbox.SetCell(x+i, y, r, attrib, attrib)
+	}
 }
