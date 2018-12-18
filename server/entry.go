@@ -64,7 +64,11 @@ func Start() {
 
 	var playerID uint64
 	for {
-		lsock.(*net.TCPListener).SetDeadline(time.Now().Add(time.Second))
+		wld.Send(func(w *world.World) {
+			w.Update()
+		})
+
+		lsock.(*net.TCPListener).SetDeadline(time.Now().Add(time.Millisecond * 100))
 
 		conn, err := lsock.Accept()
 		if err != nil {
@@ -148,15 +152,15 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 
 					x, y := c.Position()
 					cmsg := message.ServerCharacter{
-						ID:    uid,
-						Level: int16(c.Level()),
-						PosX:  int16(x),
-						PosY:  int16(y),
-						Alive: c.Alive(),
+						ID:      uid,
+						Level:   byte(c.Level()),
+						PosX:    int16(x),
+						PosY:    int16(y),
+						Respawn: byte(c.RespawnTime()),
 					}
 
 					if uid == id {
-						cmsg.Keys = int16(c.Keys())
+						cmsg.Keys = byte(c.Keys())
 					}
 					characters = append(characters, cmsg)
 				}
@@ -220,17 +224,21 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 							playerLevel := c.Level()
 							otherLevel := otherCharacter.Level()
 
+							apply := func(alive, die world.Character) {
+								die.Die()
+								alive.SetLevel(alive.Level() + 1)
+							}
+
 							switch {
 							case playerLevel > otherLevel:
-								otherCharacter.Die()
-								c.SetLevel(playerLevel + 1)
+								apply(c, otherCharacter)
 							case playerLevel < otherLevel:
-								c.Die()
+								apply(otherCharacter, c)
 							default:
 								if time.Now().UnixNano()%2 == 0 {
-									otherCharacter.Die()
+									apply(c, otherCharacter)
 								} else {
-									c.Die()
+									apply(otherCharacter, c)
 								}
 							}
 						}

@@ -20,13 +20,17 @@ import (
 const Name = "play"
 
 type Play struct {
-	id                uint64
-	posX, posY        int
-	playerLevel, keys int
-	alive             bool
-	wld               *world.World
-	conn              *connection.Connection
-	m                 state.Switcher
+	id         uint64
+	posX, posY int
+
+	playerLevel,
+	respawn,
+	keys int
+	alive bool
+
+	wld  *world.World
+	conn *connection.Connection
+	m    state.Switcher
 }
 
 func New(m state.Switcher) *Play {
@@ -155,15 +159,22 @@ func (s *Play) renderCharacters(w, h int) {
 	cornerY := s.posY - h/2
 
 	for _, c := range s.wld.Characters() {
+		alive := c.Respawn == 0
 		if c.ID == s.id {
 			// TODO: Sync position if we get to much out of sync.
 			//s.posX = int(c.PosX)
 			//s.posY = int(c.PosY)
 
-			s.alive = c.Alive
+			// This is a hack!
+			if !s.alive && alive {
+				s.posX, s.posY = 1, 1
+			}
+
+			s.alive = alive
+			s.respawn = int(c.Respawn)
 			s.keys = int(c.Keys)
 			s.playerLevel = int(c.Level)
-		} else if c.Alive {
+		} else if alive {
 			viewX := int(c.PosX) - cornerX
 			viewY := int(c.PosY) - cornerY
 
@@ -224,10 +235,13 @@ func (s *Play) calculateFov(x, y int) bool {
 func (s *Play) renderUI(w, h int) {
 	print(0, 0, true, fmt.Sprintf("Level: %d", s.playerLevel))
 	print(16, 0, true, fmt.Sprintf("Keys: %d", s.keys))
+	print(32, 0, true, fmt.Sprintf("Players: %d", len(s.wld.Characters())))
 
 	if !s.alive {
 		msg := "   You are dead!   "
-		print(w/2-len(msg)/2, h/2, true, msg)
+		print(w/2-len(msg)/2, h/2-1, true, msg)
+		msg = fmt.Sprintf("Respawn in %d...", s.respawn)
+		print(w/2-len(msg)/2, h/2+1, true, msg)
 	}
 }
 

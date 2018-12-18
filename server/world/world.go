@@ -25,6 +25,7 @@ type Character interface {
 	Keys() int
 	Level() int
 	SetLevel(int)
+	RespawnTime() int
 	Die()
 }
 

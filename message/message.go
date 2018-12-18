@@ -59,11 +59,11 @@ type ServerMessage struct {
 
 type ServerCharacter struct {
 	ID uint64
-	Level,
-	Keys,
 	PosX,
 	PosY int16
-	Alive bool
+	Level,
+	Keys,
+	Respawn byte
 }
 
 func init() {
