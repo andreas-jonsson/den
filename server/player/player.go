@@ -5,16 +5,28 @@ package player
 
 import "time"
 
+const maxStamina = 50
+
 type Player struct {
-	id        uint64
-	lvl, keys int
-	x, y      int
-	alive     bool
-	respawn   time.Time
+	id    uint64
+	alive bool
+
+	respawn,
+	lastMove time.Time
+
+	lvl,
+	keys,
+	stamina,
+	x, y int
 }
 
 func NewPlayer(id uint64) *Player {
-	return &Player{id: id, lvl: 1, alive: true}
+	return &Player{
+		id:      id,
+		lvl:     1,
+		alive:   true,
+		stamina: maxStamina,
+	}
 }
 
 func (p *Player) ID() uint64 {
@@ -41,9 +53,27 @@ func (p *Player) SetPosition(x, y int) {
 	p.x, p.y = x, y
 }
 
+func (p *Player) MoveTo(x, y int) bool {
+	if p.stamina <= 0 {
+		return false
+	}
+	p.SetPosition(x, y)
+	p.lastMove = time.Now()
+	p.stamina--
+	return true
+}
+
+func (p *Player) Stamina() int {
+	return p.stamina
+}
+
 func (p *Player) Update() {
 	if p.RespawnTime() == 0 {
 		p.alive = true
+	}
+	if p.stamina < maxStamina && time.Since(p.lastMove) > time.Second/2 {
+		p.lastMove = time.Now()
+		p.stamina++
 	}
 }
 
@@ -68,6 +98,5 @@ func (p *Player) Die() {
 	if p.lvl > 1 {
 		p.lvl /= 2
 	}
-
 	p.x, p.y = 1, 1
 }

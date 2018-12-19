@@ -6,7 +6,7 @@ package intro
 import (
 	"time"
 
-	"github.com/nsf/termbox-go"
+	termbox "github.com/nsf/termbox-go"
 	"gitlab.com/phix/den/client/state/connect"
 	"gitlab.com/phix/den/client/state/exit"
 	"gitlab.com/phix/den/state"
@@ -17,12 +17,16 @@ const displayTime = 3 * time.Second
 const Name = "intro"
 
 type Intro struct {
-	m state.Switcher
-	t *time.Timer
+	m    state.Switcher
+	t    *time.Timer
+	host string
 }
 
-func New(m state.Switcher) *Intro {
-	return &Intro{m, time.NewTimer(displayTime)}
+func New(m state.Switcher, host string) *Intro {
+	return &Intro{m,
+		time.NewTimer(displayTime),
+		host,
+	}
 }
 
 func (s *Intro) Name() string {
@@ -66,6 +70,10 @@ events:
 			j += w/2 - logoCenter
 			termbox.SetCell(j, i+y, r, termbox.ColorDefault, termbox.ColorDefault)
 		}
+	}
+
+	for i, r := range s.host {
+		termbox.SetCell(i, h-1, r, termbox.ColorDefault|termbox.AttrReverse, termbox.ColorDefault|termbox.AttrReverse)
 	}
 
 	select {

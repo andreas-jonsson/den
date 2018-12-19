@@ -4,7 +4,7 @@
 package discon
 
 import (
-	"github.com/nsf/termbox-go"
+	termbox "github.com/nsf/termbox-go"
 	"gitlab.com/phix/den/state"
 )
 
@@ -56,7 +56,7 @@ events:
 
 	w, h := termbox.Size()
 	for i, r := range s.msg {
-		termbox.SetCell(w/2-len(s.msg)/2+i, h/2, r, termbox.ColorDefault, termbox.ColorDefault)
+		termbox.SetCell(w/2-len(s.msg)/2+i, h/2, r, termbox.ColorDefault|termbox.AttrReverse, termbox.ColorDefault|termbox.AttrReverse)
 	}
 	return nil
 }

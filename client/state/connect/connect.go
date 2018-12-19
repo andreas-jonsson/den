@@ -5,12 +5,13 @@ package connect
 
 import (
 	"encoding/gob"
+	"fmt"
 	"net"
 	"time"
 
 	"gitlab.com/phix/den/message"
 
-	"github.com/nsf/termbox-go"
+	termbox "github.com/nsf/termbox-go"
 	"gitlab.com/phix/den/client/connection"
 	"gitlab.com/phix/den/client/state/discon"
 	"gitlab.com/phix/den/client/state/play"
@@ -129,11 +130,11 @@ events:
 	default:
 	}
 
-	const str = "Connecting to server..."
-
 	w, h := termbox.Size()
+	str := fmt.Sprintf("Connecting to: %s", s.host)
+
 	for i, r := range str {
-		termbox.SetCell(w/2-len(str)/2+i, h/2, r, termbox.ColorDefault, termbox.ColorDefault)
+		termbox.SetCell(w/2-len(str)/2+i, h/2, r, termbox.ColorDefault|termbox.AttrReverse, termbox.ColorDefault|termbox.AttrReverse)
 	}
 	return nil
 }

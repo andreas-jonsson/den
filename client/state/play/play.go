@@ -6,6 +6,8 @@ package play
 import (
 	"fmt"
 	"math"
+	"strings"
+	"time"
 
 	termbox "github.com/nsf/termbox-go"
 	"gitlab.com/phix/den/client/connection"
@@ -25,21 +27,25 @@ type Play struct {
 
 	playerLevel,
 	respawn,
-	keys int
+	keys,
+	stamina int
 	alive bool
+
+	lastPositionUpdate time.Time
+	hostAddr           string
 
 	wld  *world.World
 	conn *connection.Connection
 	m    state.Switcher
 }
 
-func New(m state.Switcher) *Play {
+func New(m state.Switcher, host string) *Play {
 	return &Play{
-		m:           m,
-		posX:        1,
-		posY:        1,
-		playerLevel: 1,
-		alive:       true,
+		m:                  m,
+		playerLevel:        1,
+		alive:              false,
+		lastPositionUpdate: time.Now(),
+		hostAddr:           host,
 	}
 }
 
@@ -82,9 +88,10 @@ events:
 				move = message.MoveRight
 			}
 
-			if s.alive && s.wld.Index(posX, posY) == message.FloorTile {
+			if s.alive && s.stamina > 0 && s.wld.Index(posX, posY) == message.FloorTile {
 				s.posX = posX
 				s.posY = posY
+				s.stamina--
 
 				if err := s.sendPosition(move); err != nil {
 					s.m.Switch(discon.Name)
@@ -161,17 +168,15 @@ func (s *Play) renderCharacters(w, h int) {
 	for _, c := range s.wld.Characters() {
 		alive := c.Respawn == 0
 		if c.ID == s.id {
-			// TODO: Sync position if we get to much out of sync.
-			//s.posX = int(c.PosX)
-			//s.posY = int(c.PosY)
-
-			// This is a hack!
-			if !s.alive && alive {
-				s.posX, s.posY = 1, 1
+			// X and Y equal zero is considered invalid.
+			if (s.posX == 0 || s.posY == 0) || (alive && time.Since(s.lastPositionUpdate) > time.Second) {
+				s.posX = int(c.PosX)
+				s.posY = int(c.PosY)
 			}
 
 			s.alive = alive
 			s.respawn = int(c.Respawn)
+			s.stamina = int(c.Stamina)
 			s.keys = int(c.Keys)
 			s.playerLevel = int(c.Level)
 		} else if alive {
@@ -199,6 +204,7 @@ func (s *Play) renderCharacters(w, h int) {
 }
 
 func (s *Play) sendPosition(move byte) error {
+	s.lastPositionUpdate = time.Now()
 	return s.conn.Encode(&message.ClientInput{Movement: move})
 }
 
@@ -233,12 +239,20 @@ func (s *Play) calculateFov(x, y int) bool {
 }
 
 func (s *Play) renderUI(w, h int) {
+	line := strings.Repeat(" ", w)
+	print(0, 0, true, line)
+	print(0, h-1, true, line)
+
+	const space = 16
 	print(0, 0, true, fmt.Sprintf("Level: %d", s.playerLevel))
-	print(16, 0, true, fmt.Sprintf("Keys: %d", s.keys))
-	print(32, 0, true, fmt.Sprintf("Players: %d", len(s.wld.Characters())))
+	print(space, 0, true, fmt.Sprintf("Stamina: %d", s.stamina))
+	print(space*2, 0, true, fmt.Sprintf("Keys: %d", s.keys))
+	print(space*3, 0, true, fmt.Sprintf("Players: %d", len(s.wld.Characters())))
+
+	print(0, h-1, true, s.hostAddr)
 
 	if !s.alive {
-		msg := "   You are dead!   "
+		msg := "YOU ARE DEAD!"
 		print(w/2-len(msg)/2, h/2-1, true, msg)
 		msg = fmt.Sprintf("Respawn in %d...", s.respawn)
 		print(w/2-len(msg)/2, h/2+1, true, msg)

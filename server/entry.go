@@ -116,7 +116,7 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 
 	wld.Send(func(w *world.World) {
 		p := player.NewPlayer(id)
-		p.SetPosition(1, 1)
+		setRandomPos(p, w)
 		w.Spawn(p)
 	})
 
@@ -145,7 +145,7 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 			wld.Send(func(w *world.World) {
 				var characters []message.ServerCharacter
 				for uid, u := range w.Units() {
-					c, ok := u.(world.Character)
+					c, ok := u.(*player.Player)
 					if !ok {
 						continue
 					}
@@ -157,6 +157,7 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 						PosX:    int16(x),
 						PosY:    int16(y),
 						Respawn: byte(c.RespawnTime()),
+						Stamina: byte(c.Stamina()),
 					}
 
 					if uid == id {
@@ -189,7 +190,7 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 		switch t := msg.I.(type) {
 		case message.ClientInput:
 			wld.Send(func(w *world.World) {
-				c := w.Unit(id).(world.Character)
+				c := w.Unit(id).(*player.Player)
 				x, y := c.Position()
 				nx, ny := 0, 0
 
@@ -207,38 +208,39 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 				}
 
 				if nx >= 0 && ny >= 0 && w.Index(nx, ny) == message.FloorTile {
-					c.SetPosition(nx, ny)
-
-					for id, otherUnit := range w.Units() {
-						if id == c.ID() {
-							continue
-						}
-
-						otherCharacter, ok := otherUnit.(world.Character)
-						if !ok || !otherCharacter.Alive() {
-							continue
-						}
-
-						x, y := otherCharacter.Position()
-						if x == nx && y == ny {
-							playerLevel := c.Level()
-							otherLevel := otherCharacter.Level()
-
-							apply := func(alive, die world.Character) {
-								die.Die()
-								alive.SetLevel(alive.Level() + 1)
+					if c.MoveTo(nx, ny) {
+						for id, otherUnit := range w.Units() {
+							if id == c.ID() {
+								continue
 							}
 
-							switch {
-							case playerLevel > otherLevel:
-								apply(c, otherCharacter)
-							case playerLevel < otherLevel:
-								apply(otherCharacter, c)
-							default:
-								if time.Now().UnixNano()%2 == 0 {
+							otherCharacter, ok := otherUnit.(*player.Player)
+							if !ok || !otherCharacter.Alive() {
+								continue
+							}
+
+							x, y := otherCharacter.Position()
+							if x == nx && y == ny {
+								playerLevel := c.Level()
+								otherLevel := otherCharacter.Level()
+
+								apply := func(alive, die *player.Player) {
+									die.Die()
+									setRandomPos(die, w)
+									alive.SetLevel(alive.Level() + 1)
+								}
+
+								switch {
+								case playerLevel > otherLevel:
 									apply(c, otherCharacter)
-								} else {
+								case playerLevel < otherLevel:
 									apply(otherCharacter, c)
+								default:
+									if time.Now().UnixNano()%2 == 0 {
+										apply(c, otherCharacter)
+									} else {
+										apply(otherCharacter, c)
+									}
 								}
 							}
 						}
@@ -268,4 +270,19 @@ func sendSetupData(enc *gob.Encoder, id uint64, msg message.ClientConnect) error
 	setup.ID = id
 	setup.Level = wld.Level()
 	return enc.Encode(&setup)
+}
+
+func setRandomPos(c *player.Player, w *world.World) {
+	pos := time.Now().UnixNano()
+	level := w.Level()
+
+	for {
+		i := int(pos % int64(len(level)))
+		if t := level[i]; t == message.FloorTile {
+			size := w.Size()
+			c.SetPosition(i%size, i/size)
+			return
+		}
+		pos++
+	}
 }

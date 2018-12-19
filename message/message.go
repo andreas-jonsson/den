@@ -63,6 +63,7 @@ type ServerCharacter struct {
 	PosY int16
 	Level,
 	Keys,
+	Stamina,
 	Respawn byte
 }
 

@@ -7,7 +7,7 @@ import (
 	"flag"
 	"time"
 
-	"github.com/nsf/termbox-go"
+	termbox "github.com/nsf/termbox-go"
 
 	"gitlab.com/phix/den/client/state/connect"
 	"gitlab.com/phix/den/client/state/discon"
@@ -52,10 +52,10 @@ func Start() {
 	m := state.NewMachine()
 	m.AddState(exit.New())
 
-	m.AddState(intro.New(m))
+	m.AddState(intro.New(m, hostAddr))
 	m.SetState(intro.Name)
 
-	m.AddState(play.New(m))
+	m.AddState(play.New(m, hostAddr))
 	m.AddState(discon.New(m))
 	m.AddState(connect.New(m, hostAddr))
 

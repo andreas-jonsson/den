@@ -18,17 +18,6 @@ type Unit interface {
 	Update()
 }
 
-type Character interface {
-	Unit
-
-	Alive() bool
-	Keys() int
-	Level() int
-	SetLevel(int)
-	RespawnTime() int
-	Die()
-}
-
 type World struct {
 	size     int
 	orgLevel level.Level
@@ -50,6 +39,10 @@ func NewWorld(l level.Level) *World {
 		w.level = append(w.level, r)
 	}
 	return w
+}
+
+func (w *World) Size() int {
+	return w.size
 }
 
 func (w *World) Index(x, y int) byte {
