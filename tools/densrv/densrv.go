@@ -30,7 +30,11 @@ func init() {
 }
 
 func main() {
+	if includeClient && hostLocal {
+		flag.Set("host", "localhost:5000")
+	}
 	flag.Parse()
+	
 	if printVersion {
 		fmt.Println(version.String)
 		return
