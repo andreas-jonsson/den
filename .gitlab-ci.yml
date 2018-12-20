@@ -10,7 +10,7 @@ before_script:
   - cd $GOPATH/src/$REPO_NAME
   - go env
   - apt-get update -qy
-  - apt-get install -y unzip rpl snapd
+  - apt-get install -y unzip rpl ftp-upload snapd
   # - snap --version
   # - snap install snapcraft --edge --classic
 
@@ -42,5 +42,6 @@ upload:
   script:
     - ./tools/package/itch/deploy.sh
     # - snapcraft push --release=edge den_git_amd64.snap
+    - ftp-upload -h den-pub.andreasjonsson.se -u den --password $DEN_FTP_PASSWD -d /home/den densrv
   only:
     - master
