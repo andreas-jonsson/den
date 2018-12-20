@@ -38,6 +38,8 @@ const (
 	EmptyTile byte = iota
 	WallTile
 	FloorTile
+	VDoorTile
+	HDoorTile
 )
 
 type ServerConnected struct {

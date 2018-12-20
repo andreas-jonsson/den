@@ -91,7 +91,28 @@ events:
 				move = message.MoveRight
 			}
 
-			if s.hasData && s.alive && s.stamina > 0 && s.wld.Index(posX, posY) == message.FloorTile {
+			// This is replecated logic from server. Perhaps share?
+			canMove := func() bool {
+				if !s.hasData || !s.alive || s.stamina <= 0 {
+					return false
+				}
+
+				t := s.wld.Index(posX, posY)
+				if t == message.EmptyTile || t == message.WallTile {
+					return false
+				}
+
+				if t == message.VDoorTile || t == message.HDoorTile {
+					if s.keys > 0 {
+						s.keys--
+					} else {
+						return false
+					}
+				}
+				return true
+			}()
+
+			if canMove {
 				s.posX = posX
 				s.posY = posY
 				s.stamina--
@@ -237,7 +258,7 @@ func (s *Play) calculateFov(x, y int) bool {
 
 	for i := 0; i < int(l)-minViewDist; i++ {
 		t := s.wld.Index(int(ox), int(oy))
-		if t == message.WallTile {
+		if t == message.WallTile || t == message.VDoorTile || t == message.HDoorTile {
 			return false
 		}
 		ox += vx

@@ -3,9 +3,16 @@
 
 package player
 
-import "time"
+import (
+	"time"
 
-const maxStamina = 50
+	"gitlab.com/phix/den/message"
+)
+
+const (
+	maxStamina = 50
+	maxKeys    = 10
+)
 
 type Player struct {
 	id    uint64
@@ -24,6 +31,7 @@ func NewPlayer(id uint64) *Player {
 	return &Player{
 		id:      id,
 		lvl:     1,
+		keys:    maxKeys,
 		alive:   true,
 		stamina: maxStamina,
 	}
@@ -41,6 +49,10 @@ func (p *Player) Keys() int {
 	return p.keys
 }
 
+func (p *Player) SetKeys(keys int) {
+	p.keys = keys
+}
+
 func (p *Player) SetLevel(lvl int) {
 	p.lvl = lvl
 }
@@ -53,10 +65,19 @@ func (p *Player) SetPosition(x, y int) {
 	p.x, p.y = x, y
 }
 
-func (p *Player) MoveTo(x, y int) bool {
-	if p.stamina <= 0 {
+func (p *Player) MoveTo(t byte, x, y int) bool {
+	if p.stamina <= 0 || t == message.EmptyTile || t == message.WallTile {
 		return false
 	}
+
+	if t == message.VDoorTile || t == message.HDoorTile {
+		if p.keys > 0 {
+			p.keys--
+		} else {
+			return false
+		}
+	}
+
 	p.SetPosition(x, y)
 	p.lastMove = time.Now()
 	p.stamina--
@@ -95,8 +116,8 @@ func (p *Player) RespawnTime() int {
 func (p *Player) Die() {
 	p.alive = false
 	p.respawn = time.Now()
+	p.keys = maxKeys
 	if p.lvl > 1 {
 		p.lvl /= 2
 	}
-	p.x, p.y = 1, 1
 }

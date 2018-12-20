@@ -207,8 +207,8 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 					return
 				}
 
-				if nx >= 0 && ny >= 0 && w.Index(nx, ny) == message.FloorTile {
-					if c.MoveTo(nx, ny) {
+				if nx >= 0 && ny >= 0 {
+					if c.MoveTo(w.Index(nx, ny), nx, ny) {
 						for id, otherUnit := range w.Units() {
 							if id == c.ID() {
 								continue
@@ -228,6 +228,7 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 									die.Die()
 									setRandomPos(die, w)
 									alive.SetLevel(alive.Level() + 1)
+									alive.SetKeys(alive.Keys() + 1)
 								}
 
 								switch {

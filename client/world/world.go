@@ -77,6 +77,10 @@ func TileToRune(t byte) rune {
 		return '#'
 	case message.FloorTile:
 		return '.'
+	case message.VDoorTile:
+		return '|'
+	case message.HDoorTile:
+		return '='
 	default:
 		return ' '
 	}

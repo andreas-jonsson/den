@@ -101,6 +101,10 @@ func runeToTile(r rune) byte {
 		return message.WallTile
 	case '.':
 		return message.FloorTile
+	case '|':
+		return message.VDoorTile
+	case '=':
+		return message.HDoorTile
 	default:
 		logger.Fatalln("Invalid tile:", r)
 		return 0
