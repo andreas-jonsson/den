@@ -40,8 +40,8 @@ compile:
 upload:
   stage: deploy
   script:
+    - ftp-upload -h den-pub.andreasjonsson.se --passive -u den --password $DEN_FTP_PASSWD -d /home/den densrv
     - ./tools/package/itch/deploy.sh
     # - snapcraft push --release=edge den_git_amd64.snap
-    - ftp-upload -h den-pub.andreasjonsson.se -u den --password $DEN_FTP_PASSWD -d /home/den densrv
   only:
     - master
