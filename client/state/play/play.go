@@ -34,6 +34,9 @@ type Play struct {
 	lastPositionUpdate time.Time
 	hostAddr           string
 
+	//This is not nice... Perhaps this should be moved to connect state?
+	hasData bool
+
 	wld  *world.World
 	conn *connection.Connection
 	m    state.Switcher
@@ -88,7 +91,7 @@ events:
 				move = message.MoveRight
 			}
 
-			if s.alive && s.stamina > 0 && s.wld.Index(posX, posY) == message.FloorTile {
+			if s.hasData && s.alive && s.stamina > 0 && s.wld.Index(posX, posY) == message.FloorTile {
 				s.posX = posX
 				s.posY = posY
 				s.stamina--
@@ -128,6 +131,10 @@ events:
 }
 
 func (s *Play) renderLevel(w, h int) {
+	if !s.hasData {
+		return
+	}
+
 	cornerX := s.posX - w/2
 	cornerY := s.posY - h/2
 
@@ -168,15 +175,16 @@ func (s *Play) renderCharacters(w, h int) {
 	for _, c := range s.wld.Characters() {
 		alive := c.Respawn == 0
 		if c.ID == s.id {
-			// X and Y equal zero is considered invalid.
-			if (s.posX == 0 || s.posY == 0) || (alive && time.Since(s.lastPositionUpdate) > time.Second) {
+			if !s.hasData || (alive && time.Since(s.lastPositionUpdate) > time.Second) {
+				s.hasData = true
+
 				s.posX = int(c.PosX)
 				s.posY = int(c.PosY)
+				s.stamina = int(c.Stamina)
 			}
 
 			s.alive = alive
 			s.respawn = int(c.Respawn)
-			s.stamina = int(c.Stamina)
 			s.keys = int(c.Keys)
 			s.playerLevel = int(c.Level)
 		} else if alive {
@@ -198,7 +206,7 @@ func (s *Play) renderCharacters(w, h int) {
 		}
 	}
 
-	if s.alive {
+	if s.alive && s.hasData {
 		termbox.SetCell(w/2, h/2, '@', termbox.ColorDefault, termbox.ColorDefault)
 	}
 }
