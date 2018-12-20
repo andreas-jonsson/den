@@ -30,7 +30,7 @@ var (
 
 func init() {
 	flag.StringVar(&logPort, "tcplog", "", "Port for TCP logger")
-	flag.StringVar(&hostAddr, "host", "localhost:5000", "Connect to server")
+	flag.StringVar(&hostAddr, "host", "den-pub.andreasjonsson.se:5000", "Connect to server")
 }
 
 func Start() {
