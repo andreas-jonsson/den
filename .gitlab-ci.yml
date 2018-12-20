@@ -2,7 +2,7 @@ image: golang:latest
 
 variables:
   REPO_NAME: gitlab.com/phix/den
-  BASE_VERSION: "0.0.1"
+  BASE_VERSION: "0.1.0"
 
 before_script:
   - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
