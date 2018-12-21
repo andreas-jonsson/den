@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	maxStamina = 50
-	maxKeys    = 10
+	maxStamina  = 50
+	initialKeys = 3
 )
 
 type Player struct {
@@ -31,7 +31,7 @@ func NewPlayer(id uint64) *Player {
 	return &Player{
 		id:      id,
 		lvl:     1,
-		keys:    maxKeys,
+		keys:    initialKeys,
 		alive:   true,
 		stamina: maxStamina,
 	}
@@ -116,7 +116,6 @@ func (p *Player) RespawnTime() int {
 func (p *Player) Die() {
 	p.alive = false
 	p.respawn = time.Now()
-	p.keys = maxKeys
 	if p.lvl > 1 {
 		p.lvl /= 2
 	}

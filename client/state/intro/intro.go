@@ -6,6 +6,8 @@ package intro
 import (
 	"time"
 
+	"gitlab.com/phix/den/version"
+
 	termbox "github.com/nsf/termbox-go"
 	"gitlab.com/phix/den/client/state/connect"
 	"gitlab.com/phix/den/client/state/exit"
@@ -74,6 +76,10 @@ events:
 
 	for i, r := range s.host {
 		termbox.SetCell(i, h-1, r, termbox.ColorDefault|termbox.AttrReverse, termbox.ColorDefault|termbox.AttrReverse)
+	}
+
+	for i, r := range "Version: " + version.String {
+		termbox.SetCell(i, 0, r, termbox.ColorDefault|termbox.AttrReverse, termbox.ColorDefault|termbox.AttrReverse)
 	}
 
 	select {

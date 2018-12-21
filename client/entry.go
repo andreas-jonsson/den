@@ -56,7 +56,7 @@ func Start() {
 	m.SetState(intro.Name)
 
 	m.AddState(play.New(m, hostAddr))
-	m.AddState(discon.New(m))
+	m.AddState(discon.New(m, hostAddr))
 	m.AddState(connect.New(m, hostAddr))
 
 	ticker := time.NewTicker(time.Second / 15)

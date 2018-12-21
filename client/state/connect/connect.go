@@ -5,7 +5,6 @@ package connect
 
 import (
 	"encoding/gob"
-	"fmt"
 	"net"
 	"time"
 
@@ -131,7 +130,7 @@ events:
 	}
 
 	w, h := termbox.Size()
-	str := fmt.Sprintf("Connecting to: %s", s.host)
+	str := "Connecting..."
 
 	for i, r := range str {
 		termbox.SetCell(w/2-len(str)/2+i, h/2, r, termbox.ColorDefault|termbox.AttrReverse, termbox.ColorDefault|termbox.AttrReverse)

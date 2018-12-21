@@ -4,24 +4,26 @@
 package discon
 
 import (
+	"fmt"
+
 	termbox "github.com/nsf/termbox-go"
 	"gitlab.com/phix/den/state"
 )
 
 const (
 	LostConnectionMsg  = "Lost connection with server!"
-	CouldNotConnectMsg = "Could not connect to server!"
+	CouldNotConnectMsg = "Could not connect to:"
 )
 
 const Name = "discon"
 
 type Discon struct {
-	m   state.Switcher
-	msg string
+	m         state.Switcher
+	msg, host string
 }
 
-func New(m state.Switcher) *Discon {
-	return &Discon{m: m}
+func New(m state.Switcher, host string) *Discon {
+	return &Discon{m: m, host: host}
 }
 
 func (s *Discon) Name() string {
@@ -31,6 +33,10 @@ func (s *Discon) Name() string {
 func (s *Discon) Enter(m state.Switcher, from string, data ...interface{}) {
 	if len(data) > 0 {
 		if str, ok := data[0].(string); ok {
+			if str == CouldNotConnectMsg {
+				s.msg = fmt.Sprintf("%s %s", CouldNotConnectMsg, s.host)
+				return
+			}
 			s.msg = str
 			return
 		}

@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"gitlab.com/phix/den/version"
+
 	termbox "github.com/nsf/termbox-go"
 	"gitlab.com/phix/den/client/connection"
 	"gitlab.com/phix/den/client/state/discon"
@@ -219,7 +221,7 @@ func (s *Play) renderCharacters(w, h int) {
 			r := '0'
 			switch {
 			case int(c.Level) > s.playerLevel:
-				r = 'O'
+				r = 'C'
 			case int(c.Level) < s.playerLevel:
 				r = 'o'
 			}
@@ -279,6 +281,7 @@ func (s *Play) renderUI(w, h int) {
 	print(space*3, 0, true, fmt.Sprintf("Players: %d", len(s.wld.Characters())))
 
 	print(0, h-1, true, s.hostAddr)
+	print(w-len(version.String), h-1, true, version.String)
 
 	if !s.alive {
 		msg := "YOU ARE DEAD!"
