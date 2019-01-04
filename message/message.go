@@ -1,5 +1,5 @@
 // DEN
-// Copyright (C) 2018 Andreas T Jonsson
+// Copyright (C) 2018-2019 Andreas T Jonsson
 
 package message
 
@@ -69,6 +69,19 @@ type ServerCharacter struct {
 	Respawn byte
 }
 
+const (
+	KeyItem byte = iota
+	PotionItem
+	LevelupItem
+)
+
+type ServerItem struct {
+	ID   uint64
+	Type byte
+	PosX,
+	PosY int16
+}
+
 func init() {
 	gob.Register(ClientInput{})
 	gob.Register(ClientClose{})
@@ -77,4 +90,5 @@ func init() {
 	gob.Register(ServerClose{})
 	gob.Register(ServerMessage{})
 	gob.Register([]ServerCharacter{})
+	gob.Register([]ServerItem{})
 }

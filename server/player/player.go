@@ -1,5 +1,5 @@
 // DEN
-// Copyright (C) 2018 Andreas T Jonsson
+// Copyright (C) 2018-2019 Andreas T Jonsson
 
 package player
 
@@ -9,10 +9,9 @@ import (
 	"gitlab.com/phix/den/message"
 )
 
-const (
-	maxStamina  = 50
-	initialKeys = 3
-)
+const MaxStamina = 50
+
+const initialKeys = 1
 
 type Player struct {
 	id    uint64
@@ -33,7 +32,7 @@ func NewPlayer(id uint64) *Player {
 		lvl:     1,
 		keys:    initialKeys,
 		alive:   true,
-		stamina: maxStamina,
+		stamina: MaxStamina,
 	}
 }
 
@@ -88,11 +87,15 @@ func (p *Player) Stamina() int {
 	return p.stamina
 }
 
+func (p *Player) SetStamina(s int) {
+	p.stamina = s
+}
+
 func (p *Player) Update() {
 	if p.RespawnTime() == 0 {
 		p.alive = true
 	}
-	if p.stamina < maxStamina && time.Since(p.lastMove) > time.Second/2 {
+	if p.stamina < MaxStamina && time.Since(p.lastMove) > time.Second/2 {
 		p.lastMove = time.Now()
 		p.stamina++
 	}

@@ -1,7 +1,7 @@
 //+build !windows,!linux
 
 // DEN
-// Copyright (C) 2018 Andreas T Jonsson
+// Copyright (C) 2018-2019 Andreas T Jonsson
 
 package beep
 

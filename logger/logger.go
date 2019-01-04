@@ -1,5 +1,5 @@
 // DEN
-// Copyright (C) 2018 Andreas T Jonsson
+// Copyright (C) 2018-2019 Andreas T Jonsson
 
 package logger
 
@@ -9,7 +9,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/nsf/termbox-go"
+	termbox "github.com/nsf/termbox-go"
 )
 
 var (
