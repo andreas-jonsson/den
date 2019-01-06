@@ -6,7 +6,8 @@
 
 echo $SNAPCRAFT_LOGIN_FILE | base64 --decode --ignore-garbage > ./../../../.snapcraft/snapcraft.cfg
 
-rpl e34f19fc-289d-4fb9-b134-c1d07a29a273 "${BASE_VERSION}-${CI_PIPELINE_ID}" snapcraft.yaml
+export CURRENT_VERSION=1.1.0-0
+rpl ${CURRENT_VERSION} "${BASE_VERSION}-${CI_PIPELINE_ID}" snapcraft.yaml
 
 go generate
 snapcraft build
