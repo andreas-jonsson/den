@@ -1,5 +1,5 @@
 // DEN
-// Copyright (C) 2018 Andreas T Jonsson
+// Copyright (C) 2018-2019 Andreas T Jonsson
 
 package server
 
@@ -16,6 +16,7 @@ import (
 	"gitlab.com/phix/den/level"
 	"gitlab.com/phix/den/logger"
 	"gitlab.com/phix/den/message"
+	"gitlab.com/phix/den/server/item"
 	"gitlab.com/phix/den/server/player"
 	"gitlab.com/phix/den/server/world"
 	"gitlab.com/phix/den/version"
@@ -61,8 +62,28 @@ func Start() {
 	go wld.StartUpdate()
 
 	logger.Println("Server started!")
+	var unitID uint64
 
-	var playerID uint64
+	unitID++
+	keyItem := item.NewKey(unitID)
+
+	unitID++
+	potionItem := item.NewPotion(unitID)
+
+	unitID++
+	levelupItem := item.NewLevelup(unitID)
+
+	wld.Send(func(w *world.World) {
+		setRandomPos(keyItem, w)
+		w.Spawn(keyItem)
+
+		setRandomPos(potionItem, w)
+		w.Spawn(potionItem)
+
+		setRandomPos(levelupItem, w)
+		w.Spawn(levelupItem)
+	})
+
 	for {
 		wld.Send(func(w *world.World) {
 			w.Update()
@@ -85,9 +106,9 @@ func Start() {
 			return
 		}
 
-		playerID++
+		unitID++
 		wg.Add(1)
-		go serveConnection(conn, &wg, closeChan, playerID)
+		go serveConnection(conn, &wg, closeChan, unitID)
 	}
 }
 
@@ -128,6 +149,14 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 	defer charactertTimer.Stop()
 
 	messageQueue := make(chan func() error, 128)
+	sendMessage := func(f func() error) {
+		select {
+		case messageQueue <- f:
+		default:
+			logger.Println("messageQueue is full. This may cause problems.")
+			messageQueue <- f
+		}
+	}
 
 	for {
 		select {
@@ -141,6 +170,7 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 				logger.Println(err)
 				return
 			}
+			continue // Flush the channel
 		case <-charactertTimer.C:
 			wld.Send(func(w *world.World) {
 				var characters []message.ServerCharacter
@@ -157,99 +187,150 @@ func serveConnection(conn net.Conn, wg *sync.WaitGroup, closeChan <-chan struct{
 						PosX:    int16(x),
 						PosY:    int16(y),
 						Respawn: byte(c.RespawnTime()),
-						Stamina: byte(c.Stamina()),
 					}
 
 					if uid == id {
 						cmsg.Keys = byte(c.Keys())
+						cmsg.Stamina = byte(c.Stamina())
 					}
 					characters = append(characters, cmsg)
 				}
 
-				messageQueue <- func() error {
+				sendMessage(func() error {
 					conn.SetWriteDeadline(time.Now().Add(time.Second))
 					if err := enc.Encode(message.Wrap(characters)); err != nil {
 						return err
 					}
 					return nil
+				})
+			})
+
+			wld.Send(func(w *world.World) {
+				var items []message.ServerItem
+				for uid, u := range w.Units() {
+					var itemType byte
+
+					switch u.(type) {
+					case *item.Key:
+						itemType = message.KeyItem
+					case *item.Potion:
+						itemType = message.PotionItem
+					case *item.Levelup:
+						itemType = message.LevelupItem
+					default:
+						continue
+					}
+
+					x, y := u.Position()
+					imsg := message.ServerItem{
+						ID:   uid,
+						Type: itemType,
+						PosX: int16(x),
+						PosY: int16(y),
+					}
+					items = append(items, imsg)
 				}
+
+				sendMessage(func() error {
+					conn.SetWriteDeadline(time.Now().Add(time.Second))
+					if err := enc.Encode(message.Wrap(items)); err != nil {
+						return err
+					}
+					return nil
+				})
 			})
 		default:
 		}
 
-		conn.SetReadDeadline(time.Now().Add(time.Millisecond))
-		var msg message.Any
-		if err := dec.Decode(&msg); err != nil {
-			if ne, ok := err.(net.Error); ok && ne.Timeout() {
-				continue
-			}
-			logger.Println(err)
-			return
-		}
-
-		switch t := msg.I.(type) {
-		case message.ClientInput:
-			wld.Send(func(w *world.World) {
-				c := w.Unit(id).(*player.Player)
-				x, y := c.Position()
-				nx, ny := 0, 0
-
-				switch t.Movement {
-				case message.MoveUp:
-					nx, ny = x, y-1
-				case message.MoveDown:
-					nx, ny = x, y+1
-				case message.MoveLeft:
-					nx, ny = x-1, y
-				case message.MoveRight:
-					nx, ny = x+1, y
-				default:
-					return
+		const maxMessages = 10
+		for i := 0; i < maxMessages; i++ {
+			conn.SetReadDeadline(time.Now().Add(time.Millisecond))
+			var msg message.Any
+			if err := dec.Decode(&msg); err != nil {
+				if ne, ok := err.(net.Error); ok && ne.Timeout() {
+					break
 				}
+				logger.Println(err)
+				return
+			}
 
-				if nx >= 0 && ny >= 0 {
-					if c.MoveTo(w.Index(nx, ny), nx, ny) {
-						for id, otherUnit := range w.Units() {
-							if id == c.ID() {
-								continue
-							}
+			switch t := msg.I.(type) {
+			case message.ClientInput:
+				wld.Send(func(w *world.World) {
+					c := w.Unit(id).(*player.Player)
+					x, y := c.Position()
+					nx, ny := 0, 0
 
-							otherCharacter, ok := otherUnit.(*player.Player)
-							if !ok || !otherCharacter.Alive() {
-								continue
-							}
+					switch t.Movement {
+					case message.MoveUp:
+						nx, ny = x, y-1
+					case message.MoveDown:
+						nx, ny = x, y+1
+					case message.MoveLeft:
+						nx, ny = x-1, y
+					case message.MoveRight:
+						nx, ny = x+1, y
+					default:
+						return
+					}
 
-							x, y := otherCharacter.Position()
-							if x == nx && y == ny {
-								playerLevel := c.Level()
-								otherLevel := otherCharacter.Level()
-
-								apply := func(alive, die *player.Player) {
-									die.Die()
-									setRandomPos(die, w)
-									alive.SetLevel(alive.Level() + 1)
-									alive.SetKeys(alive.Keys() + 1)
+					if nx >= 0 && ny >= 0 {
+						if c.MoveTo(w.Index(nx, ny), nx, ny) {
+							for id, otherUnit := range w.Units() {
+								if id == c.ID() {
+									continue
 								}
 
-								switch {
-								case playerLevel > otherLevel:
-									apply(c, otherCharacter)
-								case playerLevel < otherLevel:
-									apply(otherCharacter, c)
-								default:
-									if time.Now().UnixNano()%2 == 0 {
-										apply(c, otherCharacter)
-									} else {
-										apply(otherCharacter, c)
+								x, y := otherUnit.Position()
+								if x == nx && y == ny {
+									switch t := otherUnit.(type) {
+									case *player.Player:
+										if !t.Alive() {
+											continue
+										}
+
+										playerLevel := c.Level()
+										otherLevel := t.Level()
+
+										apply := func(alive, die *player.Player) {
+											die.Die()
+											setRandomPos(die, w)
+											alive.SetLevel(alive.Level() + 1)
+										}
+
+										switch {
+										case playerLevel > otherLevel:
+											apply(c, t)
+										case playerLevel < otherLevel:
+											apply(t, c)
+										default:
+											if time.Now().UnixNano()%2 == 0 {
+												apply(c, t)
+											} else {
+												apply(t, c)
+											}
+										}
+									case *item.Key:
+										setRandomPos(t, w)
+										c.SetKeys(c.Keys() + 1)
+									case *item.Potion:
+										setRandomPos(t, w)
+										c.SetStamina(player.MaxStamina)
+									case *item.Levelup:
+										setRandomPos(t, w)
+										c.SetLevel(c.Level() + 1)
+										c.SetStamina(player.MaxStamina)
+									default:
+										logger.Printf("Invalid unit type: %T", otherUnit)
 									}
 								}
 							}
 						}
 					}
-				}
-			})
-		default:
-			logger.Printf("Invalid message type: %T", msg.I)
+				})
+			default:
+				logger.Printf("Invalid message type: %T", msg.I)
+			}
 		}
 	}
 }
@@ -273,7 +354,7 @@ func sendSetupData(enc *gob.Encoder, id uint64, msg message.ClientConnect) error
 	return enc.Encode(&setup)
 }
 
-func setRandomPos(c *player.Player, w *world.World) {
+func setRandomPos(u world.Unit, w *world.World) {
 	pos := time.Now().UnixNano()
 	level := w.Level()
 
@@ -281,7 +362,7 @@ func setRandomPos(c *player.Player, w *world.World) {
 		i := int(pos % int64(len(level)))
 		if t := level[i]; t == message.FloorTile {
 			size := w.Size()
-			c.SetPosition(i%size, i/size)
+			u.SetPosition(i%size, i/size)
 			return
 		}
 		pos++

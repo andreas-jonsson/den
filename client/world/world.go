@@ -1,5 +1,5 @@
 // DEN
-// Copyright (C) 2018 Andreas T Jonsson
+// Copyright (C) 2018-2019 Andreas T Jonsson
 
 package world
 
@@ -20,6 +20,7 @@ type World struct {
 	flags []byte
 
 	characters []message.ServerCharacter
+	items      []message.ServerItem
 }
 
 func NewWorld(level []byte) *World {
@@ -54,8 +55,16 @@ func (w *World) Characters() []message.ServerCharacter {
 	return w.characters
 }
 
+func (w *World) Items() []message.ServerItem {
+	return w.items
+}
+
 func (w *World) UpdateCharacters(characters []message.ServerCharacter) {
 	w.characters = characters
+}
+
+func (w *World) UpdateItems(items []message.ServerItem) {
+	w.items = items
 }
 
 func (w *World) Index(x, y int) byte {

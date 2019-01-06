@@ -1,5 +1,5 @@
 // DEN
-// Copyright (C) 2018 Andreas T Jonsson
+// Copyright (C) 2018-2019 Andreas T Jonsson
 
 package play
 
@@ -131,22 +131,29 @@ events:
 		}
 	}
 
-	msg, err := s.conn.Decode()
-	if err != nil {
-		s.m.Switch(discon.Name)
-		return nil
-	}
+	const maxMessages = 10
+	for i := 0; i < maxMessages; i++ {
+		msg, err := s.conn.Decode()
+		if err != nil {
+			s.m.Switch(discon.Name)
+			return nil
+		}
 
-	switch t := msg.(type) {
-	case nil:
-	case []message.ServerCharacter:
-		s.wld.UpdateCharacters(t)
-	default:
-		logger.Fatalf("Invalid message: %T", msg)
+		switch t := msg.(type) {
+		case nil:
+			break
+		case []message.ServerCharacter:
+			s.wld.UpdateCharacters(t)
+		case []message.ServerItem:
+			s.wld.UpdateItems(t)
+		default:
+			logger.Fatalf("Invalid message: %T", msg)
+		}
 	}
 
 	w, h := termbox.Size()
 	s.renderLevel(w, h)
+	s.renderItems(w, h)
 	s.renderCharacters(w, h)
 	s.renderUI(w, h)
 
@@ -188,6 +195,33 @@ func (s *Play) renderLevel(w, h int) {
 				s.wld.SetFlag(wX, wY, flags&^world.Visible)
 			}
 		}
+	}
+}
+
+func (s *Play) renderItems(w, h int) {
+	cornerX := s.posX - w/2
+	cornerY := s.posY - h/2
+
+	for _, it := range s.wld.Items() {
+		viewX := int(it.PosX) - cornerX
+		viewY := int(it.PosY) - cornerY
+
+		if s.wld.Flag(int(it.PosX), int(it.PosY))&world.Visible == 0 {
+			continue
+		}
+
+		var r rune
+		switch it.Type {
+		case message.KeyItem:
+			r = '%'
+		case message.PotionItem:
+			r = 'i'
+		case message.LevelupItem:
+			r = '$'
+		default:
+			logger.Fatalf("Invalid item type: %v", it.Type)
+		}
+		termbox.SetCell(viewX, viewY, r, termbox.ColorDefault, termbox.ColorDefault)
 	}
 }
 

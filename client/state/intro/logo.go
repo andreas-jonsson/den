@@ -1,5 +1,5 @@
 // DEN
-// Copyright (C) 2018 Andreas T Jonsson
+// Copyright (C) 2018-2019 Andreas T Jonsson
 
 package intro
 
@@ -8,15 +8,15 @@ import (
 )
 
 var logo = []string{
-	"          (            )",
-	"          )\\ )      ( /(",
-	"         (()/(  (   )\\())",
-	"          /(_)) )\\ ((_)\\",
-	"         (_))_ ((_) _((_)",
-	"          |   \\| __| \\| |",
-	"          | |) | _|| .` |",
-	"          |___/|___|_|\\_|",
+	"           (            )",
+	"           )\\ )      ( /(",
+	"          (()/(  (   )\\())",
+	"           /(_)) )\\ ((_)\\",
+	"          (_))_ ((_) _((_)",
+	"           |   \\| __| \\| |",
+	"           | |) | _|| .` |",
+	"           |___/|___|_|\\_|",
 	"",
 	version.Copyright,
-	"       mail@andreasjonsson.se",
+	"        mail@andreasjonsson.se",
 }
