@@ -8,4 +8,4 @@ rpl e34f19fc-289d-4fb9-b134-c1d07a29a273 "${BASE_VERSION}-0" snapcraft.yaml
 go generate
 snapcraft cleanbuild
 
-snapcraft push den_${BASE_VERSION}-0_amd64.snap
+snapcraft push --release=release den_${BASE_VERSION}-0_amd64.snap
