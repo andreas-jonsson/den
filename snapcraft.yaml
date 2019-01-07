@@ -11,10 +11,13 @@ parts:
   den:
     plugin: go
     go-importpath: gitlab.com/phix/den
-    go-packages: [gitlab.com/phix/den]
+    #go-packages: [gitlab.com/phix/den]
     source: .
     source-type: git
 
 apps:
   den:
     command: bin/den
+
+  densrv:
+    command: bin/densrv
