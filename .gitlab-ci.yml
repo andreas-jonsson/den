@@ -29,6 +29,7 @@ format:
 compile:
   stage: build
   script:
+    - go get
     - export FULL_VERSION=${BASE_VERSION}.${CI_PIPELINE_ID} && go generate
     - ./tools/package/itch/build.sh
     # ./tools/package/snap/build.sh
